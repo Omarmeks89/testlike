@@ -47,6 +47,18 @@ test_expect_ne_int32_failed      (LINE:     33) [EXPECTED:       10, GOT:       
 test_assert_ne_int32_failed      (LINE:     45) [EXPECTED:       10, GOT:       10]                          FAILED.
 ```
 
+### installation
+```bash
+git clone git@github.com:Omarmeks89/ctest.git
+```
+
+### build tests
+
+You can compile and run base test:
+```bash
+make
+```
+
 ### compiler version and OS
 ```bash
 gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
@@ -54,11 +66,3 @@ Copyright (C) 2021 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
-
-### tests
-
-You can compile and run base test:
-```bash
-make
-```
-
