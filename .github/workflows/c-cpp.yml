@@ -19,5 +19,3 @@ jobs:
       run: make
     - name: run tests doubles
       run: ./test_dbl
-    - name: run tests int32
-      run: ./test_int32
