@@ -27,6 +27,7 @@
 #define FAILED "FAILED"
 #define EXPECTED "EXPECTED: "
 #define GOT "GOT: "
+#define PTR_ "PTR: "
 #define LINE_STR "LINE: "
 
 /* extension for floating point */
@@ -125,6 +126,35 @@
         SINGLE_POINT                    \
         _T_EOL)
 
+/* macro-template for passed null-pointer check */
+#define _PASS_NULL_PTR(__type) (        \
+        FNAME_OFFSET                    \
+        SINGLE_SPACE                    \
+        SQR_BRACKET_OPEN                \
+        PTR_                            \
+        __type                          \
+        SQR_BRACKET_CLOSE               \
+        TEST_STATUS_OFFSET              \
+        SINGLE_POINT                    \
+        _T_EOL)
+
+/* macro-template for failed null-pointer check */
+#define _FAIL_NULL_PTR(__type) (        \
+        FNAME_OFFSET                    \
+        SINGLE_SPACE                    \
+        RND_BRACKET_OPEN                \
+        LINE_STR                        \
+        LINE_NO_FMT                     \
+        RND_BRACKET_CLOSE               \
+        SINGLE_SPACE                    \
+        SQR_BRACKET_OPEN                \
+        PTR_                            \
+        __type                          \
+        SQR_BRACKET_CLOSE               \
+        TEST_STATUS_OFFSET              \
+        SINGLE_POINT                    \
+        _T_EOL)
+
 /* macro-template for passed test message 
  * (use with floating point values).
  * Params:
@@ -203,6 +233,27 @@
  *   G:      Got value. */
 #define TEST_PASSED_MSG(__type, FN, E, G) (printf(_PASS_MSG(__type), #FN, E, G, PASSED))
 
+/* macro for print pointer success msg
+ * Params:
+ *   __type: format string with arg type
+ *           that used in 'printf' function.
+ *           Example:
+ *             - '%6d';
+ *   FN:     function name;
+ *   G:      Got value. */
+#define PTR_NULL_TEST_PASSED(__type, FN, G) (printf(_PASS_NULL_PTR(__type), #FN, G, PASSED))
+
+/* macro for print pointer test failure
+ * Params:
+ *   __type: format string with arg type
+ *           that used in 'printf' function.
+ *           Example:
+ *             - '%6d';
+ *   FN:     function name;
+ *   LN:    line no for found failed test case;
+ *   G:      Got value. */
+#define PTR_NULL_TEST_FAILED(__type, FN, LN, G) (printf(_FAIL_NULL_PTR(__type), #FN, LN, G, FAILED))
+
 /* macro for set message about test pass.
  * (use with floating point values).
  * Params:
@@ -273,48 +324,48 @@
 /* TODO: separate success checks into own macro. */
 
 /* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
-#define ASSERT_EQ_PTR_NULL(RES, EXP, F_NAME, LINE)                                      \
+#define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                           \
     {                                                                                   \
         int success = 0;                                                                \
         success = __eq_null_ptr(RES);                                                   \
         if (success) {                                                                  \
-            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
+            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
         } else {                                                                        \
-            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);                     \
+            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
             abort();                                                                    \
         }                                                                               \
 
-#define ASSERT_NE_PTR_NULL(RES, EXP, F_NAME, LINE)                                      \
+#define ASSERT_NE_PTR_NULL(RES, F_NAME, LINE)                                           \
     {                                                                                   \
         int success = 0;                                                                \
         success = __ne_null_ptr(RES);                                                   \
         if (success) {                                                                  \
-            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
+            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
         } else {                                                                        \
-            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);                     \
+            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
             abort();                                                                    \
         }                                                                               \
 
-#define EXPECT_EQ_PTR_NULL(RES, EXP, F_NAME, STATE, LINE)                               \
+#define EXPECT_EQ_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
     {                                                                                   \
         int success = 0;                                                                \
         success = __eq_null_ptr(RES);                                                   \
         if (success) {                                                                  \
-            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
+            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
         } else {                                                                        \
-            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);                     \
+            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
         }                                                                               \
         *STATE = success;                                                               \
     }
 
-#define EXPECT_NE_PTR_NULL(RES, EXP, F_NAME, STATE, LINE)                               \
+#define EXPECT_NE_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
     {                                                                                   \
         int success = 0;                                                                \
         success = __ne_null_ptr(RES);                                                   \
         if (success) {                                                                  \
-            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
+            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
         } else {                                                                        \
-            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);                     \
+            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
         }                                                                               \
         *STATE = success;                                                               \
     }
