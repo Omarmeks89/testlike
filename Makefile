@@ -1,3 +1,4 @@
+# for WF
 build: int_test double_test ptr_test
 
 ptr_test: ctest.h
