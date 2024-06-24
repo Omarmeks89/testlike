@@ -1,4 +1,4 @@
-#include "../ctest.h"
+#include "ctest.h"
 
 int main() {
     int * null_ptr = NULL;

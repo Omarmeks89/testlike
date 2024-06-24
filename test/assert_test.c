@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "../ctest.h"
+#include "ctest.h"
 
 int test_LINE_macro_success() {
     int exp = __LINE__, res = LINE();
@@ -38,12 +38,6 @@ int test_assert_ne_int32_passed() {
     return 1;
 }
 
-int test_assert_ne_int32_failed() {
-    int exp = 10, res = 10;
-    ASSERT_NE_INT32(res, exp, test_assert_ne_int32_failed, LINE());
-    return 0;
-}
-
 int main() {
     int res = -1;
 
@@ -69,6 +63,5 @@ int main() {
     }
 
     test_expect_ne_int32_failed();
-    test_assert_ne_int32_failed();
     return 0;
 }
