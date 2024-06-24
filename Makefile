@@ -1,4 +1,7 @@
-build: int_test double_test
+build: int_test double_test ptr_test
+
+ptr_test: ctest.h
+	gcc -g -Wall -Wextra -Werror -Wformat -std=c89 -lm test/expect_ptr_test.c -o test_ptr
 
 int_test: ctest.h
 	gcc -g -Wall -Wextra -Werror -Wformat -std=c89 -lm test/assert_test.c -o test_int32

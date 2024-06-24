@@ -14,6 +14,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+#pragma once
+
 #ifndef _CTEST_H
 #define _CTEST_H
 
@@ -296,7 +298,7 @@
 #define EXPECT_EQ_PTR_NULL(RES, EXP, F_NAME, STATE, LINE)                               \
     {                                                                                   \
         int success = 0;                                                                \
-        success = __eq_null_ptr(RES, EXP);                                              \
+        success = __eq_null_ptr(RES);                                                   \
         if (success) {                                                                  \
             TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
         } else {                                                                        \
@@ -308,7 +310,7 @@
 #define EXPECT_NE_PTR_NULL(RES, EXP, F_NAME, STATE, LINE)                               \
     {                                                                                   \
         int success = 0;                                                                \
-        success = __ne_null_ptr(RES, EXP);                                              \
+        success = __ne_null_ptr(RES);                                                   \
         if (success) {                                                                  \
             TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);                           \
         } else {                                                                        \
