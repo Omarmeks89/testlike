@@ -21,3 +21,9 @@ jobs:
       run: make
     - name: run tests doubles
       run: ./test_ptr
+    - name: run test int32
+      run: ./test_int32
+    - name: run test doubles
+      run: ./test_dbl
+    - name: clear all
+      run: make clear
