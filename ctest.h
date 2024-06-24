@@ -50,6 +50,10 @@
 #  define DBL_EPS_TOLERANCE "%10.9lf"
 #endif
 
+#ifndef PTR_FMT_TEMPL
+#  define PTR_FMT_TEMPL "%8p"
+#endif
+
 #define _T_EOL "\n"
 
 /* macro-template for passed test message 
@@ -242,7 +246,49 @@
 
 #define __ne_double64(a, b, eps) ((fabs((double) a - (double) b) > (double) eps))
 
+#define __eq_null_ptr(a) ((void *) a == NULL)
+
+#define __ne_null_ptr(a) ((void *) a != NULL)
+
 #define LINE() (__LINE__)
+
+/* TODO: separate success checks into own macro. */
+
+/* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
+#define ASSERT_EQ_PTR_NULL(RES, EXP, F_NAME, LINE)                      \
+    {                                                                   \
+        int success = 0;                                                \
+        success = __eq_null_ptr(RES);                                   \
+        if (success) {                                                  \
+            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);           \
+        } else {                                                        \
+            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);     \
+            abort();                                                    \
+        }                                                               \
+
+#define ASSERT_NE_PTR_NULL(RES, EXP, F_NAME, LINE)                      \
+    {                                                                   \
+        int success = 0;                                                \
+        success = __ne_null_ptr(RES);                                   \
+        if (success) {                                                  \
+            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);           \
+        } else {                                                        \
+            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);     \
+            abort();                                                    \
+        }                                                               \
+
+#define EXPECT_EQ_PTR_NULL(RES, EXP, F_NAME, STATE, LINE)               \
+    {                                                                   \
+        int success = 0;                                                \
+        success = __eq_null_ptr(RES, EXP);                              \
+        if (success) {                                                  \
+            TEST_PASSED_MSG(PTR_FMT_TEMPL, F_NAME, EXP, RES);           \
+        } else {                                                        \
+            TEST_FAILED_MSG(PTR_FMT_TEMPL, F_NAME, LINE, EXP, RES);     \
+        }                                                               \
+        *STATE = success;                                               \
+    }
+
 
 /* ASSERT_EQ check that two args are equal
  * or will abort execution. */
