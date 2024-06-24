@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: add softlink on header
+      run: sudo ln -s $(pwd)/ctest/ctest.h /usr/include/ctest.h
     - name: make
       run: make
     - name: run tests doubles
