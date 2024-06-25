@@ -231,7 +231,7 @@
  *   FN:     function name;
  *   E:      Expected value;
  *   G:      Got value. */
-#define TEST_PASSED_MSG(__type, FN, E, G) (printf(_PASS_MSG(__type), #FN, E, G, PASSED))
+#define TEST_PASSED_MSG(__type, FN, E, G) (printf(_PASS_MSG(__type), FN, E, G, PASSED))
 
 /* macro for print pointer success msg
  * Params:
@@ -278,7 +278,7 @@
  *   LN:    line no for found failed test case;
  *   E:      Expected value;
  *   G:      Got value. */
-#define TEST_FAILED_MSG(__type, FN, LN, E, G) (printf(_FAIL_MSG(__type), #FN, LN, E, G, FAILED))
+#define TEST_FAILED_MSG(__type, FN, LN, E, G) (printf(_FAIL_MSG(__type), FN, LN, E, G, FAILED))
 
 /* macro for set message about test fail.
  * (use with floating point values).
@@ -321,6 +321,7 @@
 
 #define LINE() (__LINE__)
 
+/* flags for extend tests behaviour. */
 enum _test_mode {
     NOFLG = 0x0,
     ABORT = 0x1,
@@ -329,18 +330,40 @@ enum _test_mode {
 static int 
 __check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) {
     if (res) {
-
-#ifdef INCLUDE_SUCCESS
-
-        /* will print passed tests messages. */
+#ifdef ALMSG
         PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, fname, ptr);                           
 #endif
     }
     else {
         PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, fname, line, ptr);                     
-
-        if (flags & ABORT)
+        if (flags & ABORT) {
+#ifdef ABRT
             abort();                                                                    
+#else
+            /* notify... */
+#endif
+        }
+    }
+
+    return res;
+}
+
+static int
+__check_int32_result(int res, int exp, int got, char *fname, int line, int flags) {
+    if (res) {
+#ifdef ALMSG
+        TEST_PASSED_MSG(INT32_FMT_TEMPL, fname, exp, got);
+#endif
+    }
+    else {
+        TEST_FAILED_MSG(INT32_FMT_TEMPL, fname, line, exp, got);
+        if (flags & ABORT) {
+#ifdef ABRT
+            abort();                                                                    
+#else
+            /* perror about undef ABRT. */
+#endif
+        }
     }
 
     return res;
@@ -376,52 +399,28 @@ __check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) 
  * or will abort execution. */
 #define ASSERT_EQ_INT32(RES, EXP, F_NAME, LINE)                                         \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_int32(RES, EXP);                                                 \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG(INT32_FMT_TEMPL, F_NAME, EXP, RES);                         \
-        } else {                                                                        \
-            TEST_FAILED_MSG(INT32_FMT_TEMPL, F_NAME, LINE, EXP, RES);                   \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __eq_int32(RES, EXP);                                             \
+        __check_int32_result(success, EXP, RES, F_NAME, LINE, ABORT);                   \
     }
 
 #define ASSERT_NE_INT32(RES, EXP, F_NAME, LINE)                                         \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_int32(RES, EXP);                                                 \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG(INT32_FMT_TEMPL, F_NAME, EXP, RES);                         \
-        } else {                                                                        \
-            TEST_FAILED_MSG(INT32_FMT_TEMPL, F_NAME, LINE, EXP, RES);                   \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __ne_int32(RES, EXP);                                             \
+        __check_int32_result(success, EXP, RES, F_NAME, LINE, ABORT);                   \
     }
 
 /* will not abort() routine execution, only
  * write to stderr about test failure or success. */
 #define EXPECT_EQ_INT32(RES, EXP, F_NAME, STATE, LINE)                                  \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_int32(RES, EXP);                                                 \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG(INT32_FMT_TEMPL, F_NAME, EXP, RES);                         \
-        } else {                                                                        \
-            TEST_FAILED_MSG(INT32_FMT_TEMPL, F_NAME, LINE, EXP, RES);                   \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __eq_int32(RES, EXP);                                             \
+        *STATE = __check_int32_result(success, EXP, RES, F_NAME, LINE, NOFLG);          \
     }
 
 #define EXPECT_NE_INT32(RES, EXP, F_NAME, STATE, LINE)                                  \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_int32(RES, EXP);                                                 \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG(INT32_FMT_TEMPL, F_NAME, EXP, RES);                         \
-        } else {                                                                        \
-            TEST_FAILED_MSG(INT32_FMT_TEMPL, F_NAME, LINE, EXP, RES);                   \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __ne_int32(RES, EXP);                                             \
+        *STATE = __check_int32_result(success, EXP, RES, F_NAME, LINE, NOFLG);          \
     }
 
 /* assert to double */
