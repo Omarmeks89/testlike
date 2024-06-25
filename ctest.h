@@ -241,7 +241,7 @@
  *             - '%6d';
  *   FN:     function name;
  *   G:      Got value. */
-#define PTR_NULL_TEST_PASSED(__type, FN, G) (printf(_PASS_NULL_PTR(__type), #FN, G, PASSED))
+#define PTR_NULL_TEST_PASSED(__type, FN, G) (printf(_PASS_NULL_PTR(__type), FN, G, PASSED))
 
 /* macro for print pointer test failure
  * Params:
@@ -252,7 +252,7 @@
  *   FN:     function name;
  *   LN:    line no for found failed test case;
  *   G:      Got value. */
-#define PTR_NULL_TEST_FAILED(__type, FN, LN, G) (printf(_FAIL_NULL_PTR(__type), #FN, LN, G, FAILED))
+#define PTR_NULL_TEST_FAILED(__type, FN, LN, G) (printf(_FAIL_NULL_PTR(__type), FN, LN, G, FAILED))
 
 /* macro for set message about test pass.
  * (use with floating point values).
@@ -321,53 +321,54 @@
 
 #define LINE() (__LINE__)
 
-/* TODO: separate success checks into own macro. */
+enum _test_mode {
+    NOFLG = 0x0,
+    ABORT = 0x1,
+};
+
+static int 
+__check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) {
+    if (res) {
+
+#ifdef INCLUDE_SUCCESS
+
+        /* will print passed tests messages. */
+        PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, fname, ptr);                           
+#endif
+    }
+    else {
+        PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, fname, line, ptr);                     
+
+        if (flags & ABORT)
+            abort();                                                                    
+    }
+
+    return res;
+}
 
 /* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
 #define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                           \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_null_ptr(RES);                                                   \
-        if (success) {                                                                  \
-            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
-        } else {                                                                        \
-            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __eq_null_ptr(RES);                                               \
+        __check_null_ptr_result(success, RES, F_NAME, LINE, ABORT);                     \
+    }
 
 #define ASSERT_NE_PTR_NULL(RES, F_NAME, LINE)                                           \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_null_ptr(RES);                                                   \
-        if (success) {                                                                  \
-            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
-        } else {                                                                        \
-            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __ne_null_ptr(RES);                                               \
+        __check_null_ptr_result(success, RES, F_NAME, LINE, ABORT);                     \
+    }
 
 #define EXPECT_EQ_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_null_ptr(RES);                                                   \
-        if (success) {                                                                  \
-            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
-        } else {                                                                        \
-            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __eq_null_ptr(RES);                                               \
+        *STATE = __check_null_ptr_result(success, RES, F_NAME, LINE, NOFLG);            \
     }
 
 #define EXPECT_NE_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_null_ptr(RES);                                                   \
-        if (success) {                                                                  \
-            PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, F_NAME, RES);                           \
-        } else {                                                                        \
-            PTR_NULL_TEST_FAILED(PTR_FMT_TEMPL, F_NAME, LINE, RES);                     \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __ne_null_ptr(RES);                                               \
+        *STATE = __check_null_ptr_result(success, RES, F_NAME, LINE, NOFLG);            \
     }
 
 
