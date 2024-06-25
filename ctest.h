@@ -266,7 +266,7 @@
  *   G:      Got value;
  *   EPS:    current floating point tolerance. */
 #define TEST_PASSED_MSG_DBL(__type, FN, E, G, EPS) (printf(_PASS_MSG_DBL(__type, DBL_EPS_TOLERANCE), \
-                                                    #FN, E, G, EPS, PASSED))
+                                                    FN, E, G, EPS, PASSED))
 
 /* macro for set message about test fail.
  * Params:
@@ -293,7 +293,7 @@
  *   G:      Got value;
  *   EPS:    current floating point tolerance. */
 #define TEST_FAILED_MSG_DBL(__type, FN, LN, E, G, EPS) (printf(_FAIL_MSG_DBL(__type, DBL_EPS_TOLERANCE), \
-                                                        #FN, LN, E, G, EPS, FAILED))
+                                                        FN, LN, E, G, EPS, FAILED))
 
 /* custom epsilons */
 #define DBL_e_9 1e-9
@@ -341,6 +341,7 @@ __check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) 
             abort();                                                                    
 #else
             /* notify... */
+            exit(1);
 #endif
         }
     }
@@ -362,6 +363,29 @@ __check_int32_result(int res, int exp, int got, char *fname, int line, int flags
             abort();                                                                    
 #else
             /* perror about undef ABRT. */
+            exit(1);
+#endif
+        }
+    }
+
+    return res;
+}
+
+static int
+__check_dbl_result(int res, double exp, double got, double eps, char *fname, int line, int flags) {
+    if (res) {
+#ifdef ALMSG
+        TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, fname, exp, got, eps);
+#endif
+    }
+    else {
+        TEST_FAILED_MSG_DBL(DBL_FMT_TEMPL, fname, line, exp, got, eps);
+        if (flags & ABORT) {
+#ifdef ABRT
+            abort();                                                                    
+#else
+            /* perror about undef ABRT. */
+            exit(1);
 #endif
         }
     }
@@ -426,51 +450,27 @@ __check_int32_result(int res, int exp, int got, char *fname, int line, int flags
 /* assert to double */
 #define ASSERT_EQ_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                  \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_double64(RES, EXP, EPSILON);                                     \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, EXP, RES, EPSILON);              \
-        } else {                                                                        \
-            TEST_FAILED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, LINE, EXP, RES, EPSILON);        \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __eq_double64(RES, EXP, EPSILON);                                 \
+        __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, ABORT);            \
     }
 
 #define ASSERT_NE_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                  \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_double64(RES, EXP, EPSILON);                                     \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, EXP, RES, EPSILON);              \
-        } else {                                                                        \
-            TEST_FAILED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, LINE, EXP, RES, EPSILON);        \
-            abort();                                                                    \
-        }                                                                               \
+        int success = __ne_double64(RES, EXP, EPSILON);                                 \
+        __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, ABORT);            \
     }
 
 /* EXPECT waiting for pointer for test result */
 #define EXPECT_EQ_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                           \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __eq_double64(RES, EXP, EPSILON);                                     \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, EXP, RES, EPSILON);              \
-        } else {                                                                        \
-            TEST_FAILED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, LINE, EXP, RES, EPSILON);        \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __eq_double64(RES, EXP, EPSILON);                                 \
+        *STATE = __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, NOFLG);   \
     }
 
 #define EXPECT_NE_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                           \
     {                                                                                   \
-        int success = 0;                                                                \
-        success = __ne_double64(RES, EXP, EPSILON);                                     \
-        if (success) {                                                                  \
-            TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, EXP, RES, EPSILON);              \
-        } else {                                                                        \
-            TEST_FAILED_MSG_DBL(DBL_FMT_TEMPL, F_NAME, LINE, EXP, RES, EPSILON);        \
-        }                                                                               \
-        *STATE = success;                                                               \
+        int success = __ne_double64(RES, EXP, EPSILON);                                 \
+        *STATE = __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, NOFLG);   \
     }
 
 #endif /* _CTEST_H */
