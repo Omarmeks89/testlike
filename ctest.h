@@ -508,6 +508,18 @@ check_dbl_result(int res, double exp, double got, double eps, char *fname, int l
     return res;
 }
 
+static int
+eq_ascii_string(const char *sample, const char *result, int *spos, int *rpos) {
+    int s = 0, r = 0;
+    for ( ; *sample, *result; s++, r++) {
+        if (sample[s] != result[r])
+            return 0;
+    }
+
+    *spos = s, *rpos = r;
+    return 1;
+}
+
 /* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
 #define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                                   \
     {                                                                                           \
