@@ -435,7 +435,7 @@ __check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) 
         }
 
         if (flags & ABRT)
-#ifdef ABRT
+#ifdef ABORT
             abort();                                                                    
 #else
             exit(1);
@@ -467,7 +467,7 @@ __check_int32_result(int res, int exp, int got, char *fname, int line, int flags
         }
 
         if (flags & ABRT)
-#ifdef ABRT
+#ifdef ABORT
             abort();                                                                    
 #else
             exit(1);
@@ -498,7 +498,7 @@ __check_dbl_result(int res, double exp, double got, double eps, char *fname, int
         }
 
         if (flags & ABRT)
-#ifdef ABRT
+#ifdef ABORT
             abort();                                                                    
 #else
             exit(1);
