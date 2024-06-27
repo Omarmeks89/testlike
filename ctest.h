@@ -386,27 +386,27 @@
 #define DBL_e_1 1e-1
 
 /* type casting */
-#define __eq_int32(a, b) ((int) a == (int) b)
+#define eq_int32(a, b) ((int) a == (int) b)
 
-#define __ne_int32(a, b) ((int) a != (int) b)
+#define ne_int32(a, b) ((int) a != (int) b)
 
-#define __eq_double64(a, b, eps) ((fabs((double) a - (double) b) <= (double) eps))
+#define eq_double64(a, b, eps) ((fabs((double) a - (double) b) <= (double) eps))
 
-#define __ne_double64(a, b, eps) ((fabs((double) a - (double) b) > (double) eps))
+#define ne_double64(a, b, eps) ((fabs((double) a - (double) b) > (double) eps))
 
-#define __eq_null_ptr(a) ((void *) a == NULL)
+#define eq_null_ptr(a) ((void *) a == NULL)
 
-#define __ne_null_ptr(a) ((void *) a != NULL)
+#define ne_null_ptr(a) ((void *) a != NULL)
 
 #define LINE() (__LINE__)
 
-enum _test_fail_mode {
+enum test_fail_mode {
     ABRT = 0x1,
     CONT = 0x2,
 };
 
 /* flagss for extend tests behaviour. */
-enum _test_check_mode {
+enum test_check_mode {
     CHKEQ = 0x4,
     CHKNE = 0x8,
 };
@@ -415,7 +415,7 @@ enum _test_check_mode {
 #define EXCLUDE_ABRT 0xC
 
 static int 
-__check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) {
+check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) {
     if (res) {
 #ifdef ALMSG
         PTR_NULL_TEST_PASSED(PTR_FMT_TEMPL, fname, ptr);                           
@@ -446,7 +446,7 @@ __check_null_ptr_result(int res, void * ptr, char * fname, int line, int flags) 
 }
 
 static int
-__check_int32_result(int res, int exp, int got, char *fname, int line, int flags) {
+check_int32_result(int res, int exp, int got, char *fname, int line, int flags) {
     if (res) {
 #ifdef ALMSG
         TEST_PASSED_MSG(INT32_FMT_TEMPL, fname, exp, got);
@@ -478,7 +478,7 @@ __check_int32_result(int res, int exp, int got, char *fname, int line, int flags
 }
 
 static int
-__check_dbl_result(int res, double exp, double got, double eps, char *fname, int line, int flags) {
+check_dbl_result(int res, double exp, double got, double eps, char *fname, int line, int flags) {
     if (res) {
 #ifdef ALMSG
         TEST_PASSED_MSG_DBL(DBL_FMT_TEMPL, fname, exp, got, eps);
@@ -509,83 +509,83 @@ __check_dbl_result(int res, double exp, double got, double eps, char *fname, int
 }
 
 /* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
-#define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                           \
-    {                                                                                   \
-        int success = __eq_null_ptr(RES);                                               \
-        __check_null_ptr_result(success, RES, F_NAME, LINE, CHKEQ | ABRT);              \
+#define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                                   \
+    {                                                                                           \
+        int success = eq_null_ptr(RES);                                                         \
+        check_null_ptr_result(success, RES, F_NAME, LINE, CHKEQ | ABRT);                        \
     }
 
-#define ASSERT_NE_PTR_NULL(RES, F_NAME, LINE)                                           \
-    {                                                                                   \
-        int success = __ne_null_ptr(RES);                                               \
-        __check_null_ptr_result(success, RES, F_NAME, LINE, CHKNE | ABRT);              \
+#define ASSERT_NE_PTR_NULL(RES, F_NAME, LINE)                                                   \
+    {                                                                                           \
+        int success = ne_null_ptr(RES);                                                         \
+        check_null_ptr_result(success, RES, F_NAME, LINE, CHKNE | ABRT);                        \
     }
 
-#define EXPECT_EQ_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
-    {                                                                                   \
-        int success = __eq_null_ptr(RES);                                               \
-        *STATE = __check_null_ptr_result(success, RES, F_NAME, LINE, CHKEQ | CONT);     \
+#define EXPECT_EQ_PTR_NULL(RES, F_NAME, STATE, LINE)                                            \
+    {                                                                                           \
+        int success = eq_null_ptr(RES);                                                         \
+        *STATE = check_null_ptr_result(success, RES, F_NAME, LINE, CHKEQ | CONT);               \
     }
 
-#define EXPECT_NE_PTR_NULL(RES, F_NAME, STATE, LINE)                                    \
-    {                                                                                   \
-        int success = __ne_null_ptr(RES);                                               \
-        *STATE = __check_null_ptr_result(success, RES, F_NAME, LINE, CHKNE | CONT);     \
+#define EXPECT_NE_PTR_NULL(RES, F_NAME, STATE, LINE)                                            \
+    {                                                                                           \
+        int success = ne_null_ptr(RES);                                                         \
+        *STATE = check_null_ptr_result(success, RES, F_NAME, LINE, CHKNE | CONT);               \
     }
 
 
 /* ASSERT_EQ check that two args are equal
  * or will abort execution. */
-#define ASSERT_EQ_INT32(RES, EXP, F_NAME, LINE)                                         \
-    {                                                                                   \
-        int success = __eq_int32(RES, EXP);                                             \
-        __check_int32_result(success, EXP, RES, F_NAME, LINE, CHKEQ | ABRT);            \
+#define ASSERT_EQ_INT32(RES, EXP, F_NAME, LINE)                                                 \
+    {                                                                                           \
+        int success = eq_int32(RES, EXP);                                                       \
+        check_int32_result(success, EXP, RES, F_NAME, LINE, CHKEQ | ABRT);                      \
     }
 
-#define ASSERT_NE_INT32(RES, EXP, F_NAME, LINE)                                         \
-    {                                                                                   \
-        int success = __ne_int32(RES, EXP);                                             \
-        __check_int32_result(success, EXP, RES, F_NAME, LINE, CHKNE | ABRT);            \
+#define ASSERT_NE_INT32(RES, EXP, F_NAME, LINE)                                                 \
+    {                                                                                           \
+        int success = ne_int32(RES, EXP);                                                       \
+        check_int32_result(success, EXP, RES, F_NAME, LINE, CHKNE | ABRT);                      \
     }
 
 /* will not abort() routine execution, only
  * write to stderr about test failure or success. */
-#define EXPECT_EQ_INT32(RES, EXP, F_NAME, STATE, LINE)                                  \
-    {                                                                                   \
-        int success = __eq_int32(RES, EXP);                                             \
-        *STATE = __check_int32_result(success, EXP, RES, F_NAME, LINE, CHKEQ | CONT);   \
+#define EXPECT_EQ_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
+    {                                                                                           \
+        int success = eq_int32(RES, EXP);                                                       \
+        *STATE = check_int32_result(success, EXP, RES, F_NAME, LINE, CHKEQ | CONT);             \
     }
 
-#define EXPECT_NE_INT32(RES, EXP, F_NAME, STATE, LINE)                                  \
-    {                                                                                   \
-        int success = __ne_int32(RES, EXP);                                             \
-        *STATE = __check_int32_result(success, EXP, RES, F_NAME, LINE, CHKNE | CONT);   \
+#define EXPECT_NE_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
+    {                                                                                           \
+        int success = ne_int32(RES, EXP);                                                       \
+        *STATE = check_int32_result(success, EXP, RES, F_NAME, LINE, CHKNE | CONT);             \
     }
 
 /* assert to double */
-#define ASSERT_EQ_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                  \
-    {                                                                                   \
-        int success = __eq_double64(RES, EXP, EPSILON);                                 \
-        __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKEQ | ABRT);     \
+#define ASSERT_EQ_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
+    {                                                                                           \
+        int success = eq_double64(RES, EXP, EPSILON);                                           \
+        check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKEQ | ABRT);               \
     }
 
-#define ASSERT_NE_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                  \
-    {                                                                                   \
-        int success = __ne_double64(RES, EXP, EPSILON);                                 \
-        __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKNE | ABRT);     \
+#define ASSERT_NE_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
+    {                                                                                           \
+        int success = ne_double64(RES, EXP, EPSILON);                                           \
+        check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKNE | ABRT);               \
     }
 
 /* EXPECT waiting for pointer for test result */
-#define EXPECT_EQ_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                           \
-    {                                                                                   \
-        int success = __eq_double64(RES, EXP, EPSILON);                                 \
-        *STATE = __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKEQ | CONT);   \
+#define EXPECT_EQ_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
+    {                                                                                           \
+        int success = eq_double64(RES, EXP, EPSILON);                                           \
+        *STATE = check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKEQ | CONT);      \
     }
 
-#define EXPECT_NE_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                           \
-    {                                                                                   \
-        int success = __ne_double64(RES, EXP, EPSILON);                                 \
-        *STATE = __check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKNE | CONT);   \
+#define EXPECT_NE_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
+    {                                                                                           \
+        int success = ne_double64(RES, EXP, EPSILON);                                           \
+        *STATE = check_dbl_result(success, EXP, RES, EPSILON, F_NAME, LINE, CHKNE | CONT);      \
     }
 
 #endif /* _CTEST_H */
