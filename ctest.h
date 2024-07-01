@@ -38,6 +38,12 @@
 #define DBL_ISEQ_TO                             "[%10.6lf EQ TO %10.6lf. EPS.: %10.6lf]"
 #define INT32_ISEQ_TO                           "[%12d EQ TO %12d]"
 
+/* new macro-formatter */
+#define build_msg(tmpl, fname, ...) (printf(tmpl, fname, __VA_ARGS__))
+
+/* build part of msg string */
+#define _build_msg_part(tmpl, buf, ...) (sprintf(buf, tmpl, __VA_ARGS__))
+
 /* for not NULL pointer */
 #define NULLPTR "GOT NULLPTR. ADDR.: "
 
