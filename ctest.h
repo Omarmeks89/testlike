@@ -14,8 +14,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#pragma once
-
 #ifndef _CTEST_H
 #define _CTEST_H
 
@@ -30,6 +28,15 @@
 #define PTR_ "PTR IS NOT NULL. ADDR.: "
 #define LINE_STR "LINE: "
 #define IS_EQ_TO "IS EQUAL TO:"
+
+/* v0.1.1 new string format */
+#define MSG_TEMPL                               "%32s %16s %32s %8s.\n"
+#define LINE_FMT                                "(LINE %8d)"
+#define EXP_GOT_INT32                           "[EXD.: %12d, GOT: %12d]" 
+#define EXP_GOT_DBL                             "[EXP.: %10.6lf, GOT: %10.6lf, EPS.: %10.6lf]"
+#define N_NULL_PTR                              "[PTR NOT NULL. ADDR.: %8p]"
+#define DBL_ISEQ_TO                             "[%10.6lf EQ TO %10.6lf. EPS.: %10.6lf]"
+#define INT32_ISEQ_TO                           "[%12d EQ TO %12d]"
 
 /* for not NULL pointer */
 #define NULLPTR "GOT NULLPTR. ADDR.: "
