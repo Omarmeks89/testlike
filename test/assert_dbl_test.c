@@ -16,26 +16,23 @@ int test_assert_ne_dbl_passed() {
 
 int test_expect_eq_dbl_passed() {
     double exp_ = 10.01, res = 10.01;
-    int status = 0;
 
-    EXPECT_EQ_DBL(res, exp_, &status, DBL_e_2, "test_expect_eq_dbl_passed", LINE());
-    return status;
+    EXPECT_EQ_DBL(res, exp_, DBL_e_2, "test_expect_eq_dbl_passed", LINE());
+    return 0;
 }
 
 int test_expect_ne_dbl_passed() {
     double exp_ = 10.0000010001, res = 10.000000;
-    int status = 0;
 
-    EXPECT_NE_DBL(res, exp_, &status, DBL_e_6, "test_expect_ne_dbl_passed", LINE());
-    return status;
+    EXPECT_NE_DBL(res, exp_, DBL_e_6, "test_expect_ne_dbl_passed", LINE());
+    return 0;
 }
 
 int test_expect_ne_dbl_failed() {
     double exp_ = 10.000001, res = 10.000000;
-    int status = 0;
 
-    EXPECT_NE_DBL(res, exp_, &status, DBL_e_6, "test_expect_ne_dbl_failed", LINE());
-    return status;
+    EXPECT_NE_DBL(res, exp_, DBL_e_6, "test_expect_ne_dbl_failed", LINE());
+    return 0;
 }
 
 int main() {

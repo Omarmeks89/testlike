@@ -15,21 +15,21 @@ int test_assert_eq_int32() {
 }
 
 int test_expect_eq_int32() {
-    int exp = 10, res = 10, state = 0;
-    EXPECT_EQ_INT32(res, exp, "test_expect_eq_int32", &state, LINE());
-    return state;
+    int exp = 10, res = 10;
+    EXPECT_EQ_INT32(res, exp, "test_expect_eq_int32", LINE());
+    return 0;
 }
 
 int test_expect_ne_int32_passed() {
-    int exp = 10, res = 8, state = 0;
-    EXPECT_NE_INT32(res, exp, "test_expect_ne_int32_passed", &state, LINE());
-    return state;
+    int exp = 10, res = 8;
+    EXPECT_NE_INT32(res, exp, "test_expect_ne_int32_passed", LINE());
+    return 0;
 }
 
 int test_expect_ne_int32_failed() {
-    int exp = 10, res = 10, state = 0;
-    EXPECT_NE_INT32(res, exp, "test_expect_ne_int32_failed", &state, LINE());
-    return state;
+    int exp = 10, res = 10;
+    EXPECT_NE_INT32(res, exp, "test_expect_ne_int32_failed", LINE());
+    return 0;
 }
 
 int test_assert_ne_int32_passed() {

@@ -142,13 +142,13 @@
         notify(success, INT32_ISNE_TO, INT32_ISEQ_TO, F_NAME, LINE, ABORT, EXP, RES);           \
     }
 
-#define EXPECT_EQ_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
+#define EXPECT_EQ_INT32(RES, EXP, F_NAME, LINE)                                                 \
     {                                                                                           \
         int success = eq_int32(RES, EXP);                                                       \
         notify(success, EXP_GOT_INT32, EXP_GOT_INT32, F_NAME, LINE, CONTINUE, EXP, RES);        \
     }
 
-#define EXPECT_NE_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
+#define EXPECT_NE_INT32(RES, EXP, F_NAME, LINE)                                                 \
     {                                                                                           \
         int success = ne_int32(RES, EXP);                                                       \
         notify(success, INT32_ISNE_TO, INT32_ISEQ_TO, F_NAME, LINE, CONTINUE, EXP, RES);        \
@@ -167,13 +167,13 @@
         notify(success, DBL_ISNE_TO, DBL_ISEQ_TO, F_NAME, LINE, ABORT, EXP, RES, EPSILON);      \
     }
 
-#define EXPECT_EQ_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
+#define EXPECT_EQ_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
     {                                                                                           \
         int success = eq_double64(RES, EXP, EPSILON);                                           \
         notify(success, EXP_GOT_DBL, EXP_GOT_DBL, F_NAME, LINE, CONTINUE, EXP, RES, EPSILON);   \
     }
 
-#define EXPECT_NE_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
+#define EXPECT_NE_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
     {                                                                                           \
         int success = ne_double64(RES, EXP, EPSILON);                                           \
         notify(success, DBL_ISNE_TO, DBL_ISEQ_TO, F_NAME, LINE, CONTINUE, EXP, RES, EPSILON);   \
