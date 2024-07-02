@@ -3,6 +3,9 @@
 # ctest
 utility for testing programs in C.
 
+### version
+`v0.0.3a`
+
 ### installation
 ```bash
 git clone git@github.com:Omarmeks89/ctest.git
@@ -30,9 +33,9 @@ gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
 Currently provides several macros for checking return values of type int32 and double64. Usage example:
 ```C
 void test_assert_eq_dbl_success() {
-    double expected = 10.0, res = 0.0;
+    double exp = 10.0, res = 0.0;
     res = func_that_return_double();
-    ASSERT_EQ_DBL(res, exp_, DBL_e_2, "wished_test_name", LINE());
+    ASSERT_EQ_DBL(res, exp, DBL_e_2, "wished_test_name", LINE());
 }
 
 
@@ -75,3 +78,12 @@ test_expect_eq_dbl_passed                                        [EXP.: 10.01000
 test_expect_ne_dbl_passed                                                 [10.000001 != 10.000000. EPS.: 0.000001]           PASSED.
 test_expect_ne_dbl_failed               (LINE 34)                         [10.000001 == 10.000000. EPS.: 0.000001]           FAILED.
 ```
+
+## ABOUT
+Minimal utility for simple test cases. Can be integrated directly into code (instead of assert) or used in separate test functions. String comparison (UTF-8) and support for table tests will be added in future versions.
+
+If you use `QUIET=-DQUIET' when compiling tests, only error messages will be output.
+
+
+It consists of only one header file and does not require third-party libraries. Note that the `math` library is used. Take this into account when compiling tests.
+
