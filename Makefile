@@ -7,7 +7,7 @@ QUIET?=
 
 SOURCE=ctest.h
 
-build: int_test double_test ptr_test
+build: int_test double_test ptr_test crash_test
 
 ptr_test: $(SOURCE)
 	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/expect_ptr_test.c -o test_ptr
@@ -18,8 +18,8 @@ int_test: $(SOURCE)
 double_test: $(SOURCE)
 	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/assert_dbl_test.c -o test_dbl
 
-crach_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/crash_test.c -o crash_test
+crash_test: $(SOURCE)
+	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/crash_test.c -o test_crash
 
 clear:
-	rm -rf *.o test_* *_test
+	rm -rf *.o test_*
