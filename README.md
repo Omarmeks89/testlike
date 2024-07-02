@@ -87,3 +87,36 @@ If you use `QUIET=-DQUIET' when compiling tests, only error messages will be out
 
 It consists of only one header file and does not require third-party libraries. Note that the `math` library is used. Take this into account when compiling tests.
 
+### Usage
+
+`ASSERT` will break execution if testcase failed:
+```bash
+ASSERT_EQ_INT32(result, expected_value, test_title, line_number);
+```
+
+You can use macro `LINE()` to set line number.
+
+```bash
+ASSERT_EQ_DBL(result, expected_value, epsilon, test_title, line_number);
+```
+
+`ccheck` provide several epsilons:
+```C
+#define DBL_e_9 1e-9
+#define DBL_e_8 1e-8
+#define DBL_e_7 1e-7
+#define DBL_e_6 1e-6
+#define DBL_e_5 1e-5
+#define DBL_e_4 1e-4
+#define DBL_e_3 1e-3
+#define DBL_e_2 1e-2
+#define DBL_e_1 1e-1
+```
+
+`NE` (not equal) may be useful if you wish to check pointer is not NULL:
+```bash
+ASSERT_NE_PTR_NULL(pointer, test_title, line_number);
+```
+
+`EXPECT` will not break execution and you can see all results. `ASSERT` and `EXPECT`
+use the same arguments in same order.
