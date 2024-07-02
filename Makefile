@@ -18,5 +18,8 @@ int_test: $(SOURCE)
 double_test: $(SOURCE)
 	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/assert_dbl_test.c -o test_dbl
 
+crach_test: $(SOURCE)
+	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/crash_test.c -o crash_test
+
 clear:
-	rm -rf *.o test_*
+	rm -rf *.o test_* *_test
