@@ -3,16 +3,13 @@
 # testlike
 utility for testing programs in C.
 
-### version
-`v0.0.3a`
-
 ### installation
 ```bash
 git clone git@github.com:Omarmeks89/testlike.git
 ```
 
 You can `cp` ctest.h into your project directory and
-include it like "../testilike.h"
+include it like "../testlike.h"
 or make a softlink and use in by name:
 ```bash
 sudo ln -s $(pwd)/testlike.h /usr/include/testlike.h
@@ -36,7 +33,8 @@ make QUIET=-DQUIET
 gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
 ```
 
-Currently provides several macros for checking return values of type int32 and double64. Usage example:
+### Example
+
 ```C
 #include "testlike.h"
 
@@ -51,7 +49,6 @@ void test_expect_eq_int32() {
     int exp = 10, res = 0;
     res = func_that_return_int32();
     EXPECT_EQ_INT32(res, exp, "wished_test_name", LINE());
-    return 1;
 }
 
 int main() {
@@ -62,28 +59,28 @@ int main() {
 ```
 Below is output example (for double):
 ```bash
-test_assert_eq_dbl_success                  [EXP.: 10.000000, GOT: 10.000000, EPS.: 0.010000]           PASSED.
-test_assert_ne_dbl_passed                            [10.011000 != 10.000000. EPS.: 0.010000]           PASSED.
-test_expect_eq_dbl_passed                   [EXP.: 10.010000, GOT: 10.010000, EPS.: 0.010000]           PASSED.
-test_expect_ne_dbl_passed                            [10.000001 != 10.000000. EPS.: 0.000001]           PASSED.
-test_expect_ne_dbl_failed    (LINE 34)               [10.000001 == 10.000000. EPS.: 0.000001]           FAILED.
+test_assert_eq_dbl_success                  [EXP.: 10.000000, GOT: 10.000000, EPS.: 0.010000]     PASSED.
+test_assert_ne_dbl_passed                            [10.011000 != 10.000000. EPS.: 0.010000]     PASSED.
+test_expect_eq_dbl_passed                   [EXP.: 10.010000, GOT: 10.010000, EPS.: 0.010000]     PASSED.
+test_expect_ne_dbl_passed                            [10.000001 != 10.000000. EPS.: 0.000001]     PASSED.
+test_expect_ne_dbl_failed    (LINE 34)               [10.000001 == 10.000000. EPS.: 0.000001]     FAILED.
 ```
 
 (for int32):
 ```bash
-test_assert_eq_int32                                                      [EXP.: 10, GOT: 10]           PASSED.
-test_expect_eq_int32                                                      [EXP.: 10, GOT: 10]           PASSED.
-test_expect_ne_int32_passed                                                         [10 != 8]           PASSED.
-test_assert_ne_int32_passed                                                         [10 != 0]           PASSED.
-test_expect_ne_int32_failed  (LINE 31)                                             [10 == 10]           FAILED.
+test_assert_eq_int32                                                      [EXP.: 10, GOT: 10]     PASSED.
+test_expect_eq_int32                                                      [EXP.: 10, GOT: 10]     PASSED.
+test_expect_ne_int32_passed                                                         [10 != 8]     PASSED.
+test_assert_ne_int32_passed                                                         [10 != 0]     PASSED.
+test_expect_ne_int32_failed  (LINE 31)                                             [10 == 10]     FAILED.
 ```
 
 (for pointers):
 ```bash
-null_ptr_test_1                                                              [NULLPTR: (nil)]           PASSED.
-null_ptr_test_2                                               [PTR NOT NULL. ADDR.: 0xffabef]           PASSED.
-expect_null_ptr_test_3                                                       [NULLPTR: (nil)]           PASSED.
-not_null_ptr_test_4                                           [PTR NOT NULL. ADDR.: 0xffabef]           PASSED.
+null_ptr_test_1                                                              [NULLPTR: (nil)]     PASSED.
+null_ptr_test_2                                               [PTR NOT NULL. ADDR.: 0xffabef]     PASSED.
+expect_null_ptr_test_3                                                       [NULLPTR: (nil)]     PASSED.
+not_null_ptr_test_4                                           [PTR NOT NULL. ADDR.: 0xffabef]     PASSED.
 ```
 
 ## ABOUT

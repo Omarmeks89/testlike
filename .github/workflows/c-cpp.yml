@@ -14,12 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: add softlink on header
-      run: sudo ln -s $(pwd)/ctest.h /usr/include/ctest.h
-    - name: check link
-      run: stat /usr/include/ctest.h
+      run: sudo ln -s $(pwd)/testlike.h /usr/include/testlike.h
     - name: make
       run: make
-    - name: run tests doubles
+    - name: run tests pointers 
       run: ./test_ptr
     - name: run test int32
       run: ./test_int32

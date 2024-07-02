@@ -5,7 +5,7 @@ STD=c89
 # from cli
 QUIET?=
 
-SOURCE=ctest.h
+SOURCE=testlike.h
 
 build: int_test double_test ptr_test crash_test
 

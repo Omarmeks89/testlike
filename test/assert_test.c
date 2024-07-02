@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "ctest.h"
+#include "testlike.h"
 
 int test_LINE_macro_success() {
     int exp = __LINE__, res = LINE();

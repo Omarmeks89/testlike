@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "ctest.h"
+#include "testlike.h"
 
 int test_assert_eq_dbl_success() {
     double exp_ = 10.0, res = 10.0;
