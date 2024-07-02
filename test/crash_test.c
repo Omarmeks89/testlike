@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "../ctest.h"
+#include "ctest.h"
 
 /* try to make crash with a long string */
 int test_very_big_string_overflow() {

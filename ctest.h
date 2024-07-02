@@ -27,15 +27,15 @@
 
 /* v0.1.1 new string format */
 #define MSG_TEMPL                               "%-32s %16s %64s %16s.\n"
-#define LINE_FMT                                "(LINE %8d)"
-#define EXP_GOT_INT32                           "[EXP.: %12d, GOT: %12d]" 
-#define EXP_GOT_DBL                             "[EXP.: %10.6lf, GOT: %10.6lf, EPS.: %10.6lf]"
-#define N_NULLPTR                               "[PTR NOT NULL. ADDR.: %8p]"
-#define NULLPTR                                 "[NULLPTR: %8p]"
-#define DBL_ISEQ_TO                             "[%10.6lf EQ TO %10.6lf. EPS.: %10.6lf]"
-#define DBL_ISNE_TO                             "[%10.6lf NE TO %10.6lf. EPS.: %10.6lf]"
-#define INT32_ISEQ_TO                           "[%12d EQ TO %12d]"
-#define INT32_ISNE_TO                           "[%12d NE TO %12d]"
+#define LINE_FMT                                "(LINE %d)"
+#define EXP_GOT_INT32                           "[EXP.: %d, GOT: %d]" 
+#define EXP_GOT_DBL                             "[EXP.: %.6lf, GOT: %.6lf, EPS.: %.6lf]"
+#define N_NULLPTR                               "[PTR NOT NULL. ADDR.: %p]"
+#define NULLPTR                                 "[NULLPTR: %p]"
+#define DBL_ISEQ_TO                             "[%.6lf == %.6lf. EPS.: %.6lf]"
+#define DBL_ISNE_TO                             "[%.6lf != %.6lf. EPS.: %.6lf]"
+#define INT32_ISEQ_TO                           "[%d == %d]"
+#define INT32_ISNE_TO                           "[%d != %d]"
 
 #ifndef MSG_BUF_SIZE
 #   define MSG_BUF_SIZE 256
