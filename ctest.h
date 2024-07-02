@@ -26,14 +26,16 @@
 #define FAILED "FAILED"
 
 /* v0.1.1 new string format */
-#define MSG_TEMPL                               "%-32s %16s %32s %8s.\n"
+#define MSG_TEMPL                               "%-32s %16s %64s %16s.\n"
 #define LINE_FMT                                "(LINE %8d)"
 #define EXP_GOT_INT32                           "[EXP.: %12d, GOT: %12d]" 
 #define EXP_GOT_DBL                             "[EXP.: %10.6lf, GOT: %10.6lf, EPS.: %10.6lf]"
 #define N_NULLPTR                               "[PTR NOT NULL. ADDR.: %8p]"
 #define NULLPTR                                 "[NULLPTR: %8p]"
 #define DBL_ISEQ_TO                             "[%10.6lf EQ TO %10.6lf. EPS.: %10.6lf]"
+#define DBL_ISNE_TO                             "[%10.6lf NE TO %10.6lf. EPS.: %10.6lf]"
 #define INT32_ISEQ_TO                           "[%12d EQ TO %12d]"
+#define INT32_ISNE_TO                           "[%12d NE TO %12d]"
 
 #ifndef MSG_BUF_SIZE
 #   define MSG_BUF_SIZE 256
@@ -73,6 +75,9 @@
 
 #define LINE() (__LINE__)
 
+#define ABORT 1
+#define CONTINUE 0
+
 #ifdef QUIET
 #   define on_success(...)
 # else
@@ -81,78 +86,97 @@
 
 #define on_fail(...) (printf(__VA_ARGS__))
 
+#define notify(ST, S, F, FN, LN, ABRT, ...)                                                     \
+    {                                                                                           \
+        char msg[MSG_BUF_SIZE];                                                                 \
+        if (ST) {                                                                               \
+            _build_msg_part(S, msg, __VA_ARGS__);                                               \
+            on_success(MSG_TEMPL, FN, SPACE, msg, PASSED);                                      \
+        }                                                                                       \
+        else {                                                                                  \
+            char ln[MSG_BUF_SIZE / 4];                                                          \
+            _build_msg_part(F, msg, __VA_ARGS__);                                               \
+            _build_msg_part(LINE_FMT, ln, LN);                                                  \
+            on_fail(MSG_TEMPL, FN, ln, msg, FAILED);                                            \
+            if (ABRT)                                                                           \
+                exit(EINVAL);                                                                   \
+        }                                                                                       \
+    }
+
+
 /* ASSERT_EQ_PTR_NULL check that pointer is eq to NULL */
 #define ASSERT_EQ_PTR_NULL(RES, F_NAME, LINE)                                                   \
     {                                                                                           \
-        char msg[MSG_BUF_SIZE];                                                                 \
         int success = eq_null_ptr(RES);                                                         \
-        if (success) {                                                                          \
-            _build_msg_part(NULLPTR, msg, RES);                                                \
-            on_success(MSG_TEMPL, F_NAME, SPACE, msg, PASSED);                                  \
-        }                                                                                       \
-        else {                                                                                  \
-            char ln[32];                                                                        \
-            _build_msg_part(N_NULLPTR, msg, RES);                                              \
-            _build_msg_part(LINE_FMT, ln, LINE);                                               \
-            on_fail(MSG_TEMPL, F_NAME, ln, msg, FAILED);                                        \
-            exit(EINVAL);                                                                       \
-        }                                                                                       \
+        notify(success, NULLPTR, N_NULLPTR, F_NAME, LINE, ABORT, RES);                          \
     }
 
 #define ASSERT_NE_PTR_NULL(RES, F_NAME, LINE)                                                   \
     {                                                                                           \
         int success = ne_null_ptr(RES);                                                         \
+        notify(success, N_NULLPTR, NULLPTR, F_NAME, LINE, ABORT, RES);                          \
     }
 
-#define EXPECT_EQ_PTR_NULL(RES, F_NAME, STATE, LINE)                                            \
+#define EXPECT_EQ_PTR_NULL(RES, F_NAME, LINE)                                                   \
     {                                                                                           \
         int success = eq_null_ptr(RES);                                                         \
+        notify(success, NULLPTR, N_NULLPTR, F_NAME, LINE, CONTINUE, RES);                       \
     }
 
-#define EXPECT_NE_PTR_NULL(RES, F_NAME, STATE, LINE)                                            \
+#define EXPECT_NE_PTR_NULL(RES, F_NAME, LINE)                                                   \
     {                                                                                           \
         int success = ne_null_ptr(RES);                                                         \
+        notify(success, N_NULLPTR, NULLPTR, F_NAME, LINE, CONTINUE, RES);                       \
     }
 
+/* marco for int32 values */
 #define ASSERT_EQ_INT32(RES, EXP, F_NAME, LINE)                                                 \
     {                                                                                           \
         int success = eq_int32(RES, EXP);                                                       \
+        notify(success, EXP_GOT_INT32, EXP_GOT_INT32, F_NAME, LINE, ABORT, EXP, RES);           \
     }
 
 #define ASSERT_NE_INT32(RES, EXP, F_NAME, LINE)                                                 \
     {                                                                                           \
         int success = ne_int32(RES, EXP);                                                       \
+        notify(success, INT32_ISNE_TO, INT32_ISEQ_TO, F_NAME, LINE, ABORT, EXP, RES);           \
     }
 
 #define EXPECT_EQ_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
     {                                                                                           \
         int success = eq_int32(RES, EXP);                                                       \
+        notify(success, EXP_GOT_INT32, EXP_GOT_INT32, F_NAME, LINE, CONTINUE, EXP, RES);        \
     }
 
 #define EXPECT_NE_INT32(RES, EXP, F_NAME, STATE, LINE)                                          \
     {                                                                                           \
         int success = ne_int32(RES, EXP);                                                       \
+        notify(success, INT32_ISNE_TO, INT32_ISEQ_TO, F_NAME, LINE, CONTINUE, EXP, RES);        \
     }
 
 /* assert to double */
 #define ASSERT_EQ_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
     {                                                                                           \
         int success = eq_double64(RES, EXP, EPSILON);                                           \
+        notify(success, EXP_GOT_DBL, EXP_GOT_DBL, F_NAME, LINE, ABORT, EXP, RES, EPSILON);      \
     }
 
 #define ASSERT_NE_DBL(RES, EXP, EPSILON, F_NAME, LINE)                                          \
     {                                                                                           \
         int success = ne_double64(RES, EXP, EPSILON);                                           \
+        notify(success, DBL_ISNE_TO, DBL_ISEQ_TO, F_NAME, LINE, ABORT, EXP, RES, EPSILON);      \
     }
 
 #define EXPECT_EQ_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
     {                                                                                           \
         int success = eq_double64(RES, EXP, EPSILON);                                           \
+        notify(success, EXP_GOT_DBL, EXP_GOT_DBL, F_NAME, LINE, CONTINUE, EXP, RES, EPSILON);   \
     }
 
 #define EXPECT_NE_DBL(RES, EXP, STATE, EPSILON, F_NAME, LINE)                                   \
     {                                                                                           \
         int success = ne_double64(RES, EXP, EPSILON);                                           \
+        notify(success, DBL_ISNE_TO, DBL_ISEQ_TO, F_NAME, LINE, CONTINUE, EXP, RES, EPSILON);   \
     }
 
 #endif /* _CTEST_H */

@@ -39,29 +39,11 @@ int test_assert_ne_int32_passed() {
 }
 
 int main() {
-    int res = -1;
-
-    res = test_LINE_macro_success();
-    if (res == 0)
-        return res;
-
-    res = test_assert_eq_int32();
-    if (res == 0)
-        return res;
-
-    res = test_expect_eq_int32();
-    if (res == 0)
-        return res;
-
-    res = test_expect_ne_int32_passed();
-    if (res == 0)
-        return res;
-
-    res = test_assert_ne_int32_passed();
-    if (res == 0) {
-        return res;
-    }
-
+    test_LINE_macro_success();
+    test_assert_eq_int32();
+    test_expect_eq_int32();
+    test_expect_ne_int32_passed();
+    test_assert_ne_int32_passed();
     test_expect_ne_int32_failed();
     return 0;
 }

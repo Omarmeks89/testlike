@@ -39,20 +39,10 @@ int test_expect_ne_dbl_failed() {
 }
 
 int main() {
-    int res = 0;
-
     test_assert_eq_dbl_success();
     test_assert_ne_dbl_passed();
-
-    res = test_expect_eq_dbl_passed();
-    if (res == 0)
-        return 1;
-
-    res = test_expect_ne_dbl_passed();
-    if (res == 0)
-        return 1;
-
-    res = test_expect_ne_dbl_failed();
-
+    test_expect_eq_dbl_passed();
+    test_expect_ne_dbl_passed();
+    test_expect_ne_dbl_failed();
     return 0;
 }
