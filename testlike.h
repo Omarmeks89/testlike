@@ -37,9 +37,8 @@
 #define INT32_ISEQ_TO                           "[%d == %d]"
 #define INT32_ISNE_TO                           "[%d != %d]"
 
-#ifndef MSG_BUF_SIZE
-#   define MSG_BUF_SIZE 256
-#endif
+#define MSG_BUF_SIZE 64
+#define LINE_BUF_SIZE 16
 
 #define SPACE " "
 
@@ -80,26 +79,46 @@
 
 #ifdef QUIET
 #   define on_success(...)
+#   define _ALLOC 0
 # else
 #   define on_success(...) (printf(__VA_ARGS__))
+#   define _ALLOC 1
 #endif
 
 #define on_fail(...) (printf(__VA_ARGS__))
 
 #define notify(ST, S, F, FN, LN, ABRT, ...)                                                     \
     {                                                                                           \
-        char msg[MSG_BUF_SIZE];                                                                 \
-        if (ST) {                                                                               \
-            _build_msg_part(S, msg, __VA_ARGS__);                                               \
+        char *msg, *ln;                                                                         \
+        int w = 0;                                                                              \
+        if ((ST) && (_ALLOC)) {                                                                 \
+            msg = (char *) calloc(MSG_BUF_SIZE, sizeof(char));                                  \
+            if (msg == NULL)                                                                    \
+                exit(errno);                                                                    \
+            w = _build_msg_part(S, msg, __VA_ARGS__);                                           \
+            if (w < 0)                                                                          \
+                exit(errno);                                                                    \
             on_success(MSG_TEMPL, FN, SPACE, msg, PASSED);                                      \
+            free(msg);                                                                          \
         }                                                                                       \
         else {                                                                                  \
-            char ln[MSG_BUF_SIZE / 4];                                                          \
-            _build_msg_part(F, msg, __VA_ARGS__);                                               \
-            _build_msg_part(LINE_FMT, ln, LN);                                                  \
+            msg = (char *) calloc(MSG_BUF_SIZE, sizeof(char));                                  \
+            if (msg == NULL)                                                                    \
+                exit(errno);                                                                    \
+            ln = (char *) calloc(LINE_BUF_SIZE, sizeof(char));                                  \
+            if (ln == NULL)                                                                     \
+                exit(errno);                                                                    \
+            w = _build_msg_part(F, msg, __VA_ARGS__);                                           \
+            if (w < 0)                                                                          \
+                exit(errno);                                                                    \
+            w = _build_msg_part(LINE_FMT, ln, LN);                                              \
+            if (w < 0)                                                                          \
+                exit(errno);                                                                    \
             on_fail(MSG_TEMPL, FN, ln, msg, FAILED);                                            \
             if (ABRT)                                                                           \
                 exit(EINVAL);                                                                   \
+            free(msg);                                                                          \
+            free(ln);                                                                           \
         }                                                                                       \
     }
 
