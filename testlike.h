@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #define PASSED "PASSED"
 #define FAILED "FAILED"
@@ -41,9 +42,6 @@
 #define LINE_BUF_SIZE 16
 
 #define SPACE " "
-
-/* new macro-formatter */
-#define build_msg(tmpl, fname, ...) (printf(tmpl, fname, __VA_ARGS__))
 
 /* build part of msg string */
 #define _build_msg_part(tmpl, buf, ...) (sprintf(buf, tmpl, __VA_ARGS__))
@@ -78,14 +76,48 @@
 #define CONTINUE 0
 
 #ifdef QUIET
-#   define on_success(...)
 #   define _ALLOC 0
 # else
-#   define on_success(...) (printf(__VA_ARGS__))
 #   define _ALLOC 1
 #endif
 
-#define on_fail(...) (printf(__VA_ARGS__))
+void _printmsg(FILE * stream, const char *fmt, ...) {
+    int w = 0;
+    va_list v;
+
+    va_start(v, fmt);
+    w = vfprintf(stream, fmt, v);
+    if (w <= 0)
+        exit(errno);
+
+    va_end(v);
+}
+
+#if defined(ESTRM)
+#   if ESTRM = 2
+#       define _ES stderr
+#   elif ESTRM = 1
+#       define _ES = stdout
+#   else
+#       error "invalid errstream no. Use 1 or 2"
+#   endif
+#else
+#   define _ES stderr
+#endif
+
+#if defined(MSTRM)
+#   if MSTRM = 1
+#       define _MS stdout
+#   elif MSTRM = 2
+#       define _MS stderr
+#   else
+#       error "invalid errstream no. Use 1 or 2"
+#   endif
+#else
+#   define _MS stdout
+#endif
+
+#define _BUF_TAIL(parts) parts
 
 #define notify(ST, S, F, FN, LN, ABRT, ...)                                                     \
     {                                                                                           \
@@ -98,27 +130,24 @@
             w = _build_msg_part(S, msg, __VA_ARGS__);                                           \
             if (w < 0)                                                                          \
                 exit(errno);                                                                    \
-            on_success(MSG_TEMPL, FN, SPACE, msg, PASSED);                                      \
+            _printmsg(_MS, MSG_TEMPL, FN, SPACE, msg, PASSED);                                  \
             free(msg);                                                                          \
         }                                                                                       \
         else {                                                                                  \
-            msg = (char *) calloc(MSG_BUF_SIZE, sizeof(char));                                  \
+            msg = (char *) calloc(MSG_BUF_SIZE + LINE_BUF_SIZE + _BUF_TAIL(2), sizeof(char));   \
             if (msg == NULL)                                                                    \
                 exit(errno);                                                                    \
-            ln = (char *) calloc(LINE_BUF_SIZE, sizeof(char));                                  \
-            if (ln == NULL)                                                                     \
-                exit(errno);                                                                    \
+            ln = msg + MSG_BUF_SIZE;                                                            \
             w = _build_msg_part(F, msg, __VA_ARGS__);                                           \
             if (w < 0)                                                                          \
                 exit(errno);                                                                    \
             w = _build_msg_part(LINE_FMT, ln, LN);                                              \
             if (w < 0)                                                                          \
                 exit(errno);                                                                    \
-            on_fail(MSG_TEMPL, FN, ln, msg, FAILED);                                            \
+            _printmsg(_ES, MSG_TEMPL, FN, ln, msg, FAILED);                                     \
             if (ABRT)                                                                           \
                 exit(EINVAL);                                                                   \
             free(msg);                                                                          \
-            free(ln);                                                                           \
         }                                                                                       \
     }
 
