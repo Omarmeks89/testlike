@@ -94,10 +94,10 @@ void _printmsg(FILE * stream, const char *fmt, ...) {
 }
 
 #if defined(ESTRM)
-#   if ESTRM = 2
+#   if ESTRM== 2
 #       define _ES stderr
-#   elif ESTRM = 1
-#       define _ES = stdout
+#   elif ESTRM==1
+#       define _ES stdout
 #   else
 #       error "invalid errstream no. Use 1 or 2"
 #   endif
@@ -106,9 +106,9 @@ void _printmsg(FILE * stream, const char *fmt, ...) {
 #endif
 
 #if defined(MSTRM)
-#   if MSTRM = 1
+#   if MSTRM==1
 #       define _MS stdout
-#   elif MSTRM = 2
+#   elif MSTRM==2
 #       define _MS stderr
 #   else
 #       error "invalid errstream no. Use 1 or 2"

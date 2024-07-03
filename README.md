@@ -28,6 +28,13 @@ will be ignored:
 make QUIET=-DQUIET
 ```
 
+You can redirect success and error outputs to different output streams.
+`ESTRM` (error stream) parameter responsible to set output stream for errors (stderr by default).
+`MSTRM` (message stream) parameter responsible to set output stream for messages (stdout by default).
+```bash
+make ESTRM=2 MSTRM=2
+```
+
 ### compiler version and OS
 ```bash
 gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0

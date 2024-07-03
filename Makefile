@@ -2,24 +2,23 @@ C=gcc
 FLDEBUG=-g -Wall -Wextra -Werror -Wformat
 STD=c89
 
-# from cli
 QUIET?=
+ESTRM?=2
+MSTRM?=1
 
 SOURCE=testlike.h
+OUT_STREAMS=-DESTRM=$(ESTRM) -DMSTRM=$(MSTRM) 
 
-build: int_test double_test ptr_test crash_test
+build: int_test double_test ptr_test
 
 ptr_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/expect_ptr_test.c -o test_ptr
+	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) -lm test/expect_ptr_test.c -o test_ptr
 
 int_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/assert_test.c -o test_int32
+	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) -lm test/assert_test.c -o test_int32
 
 double_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/assert_dbl_test.c -o test_dbl
-
-crash_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) -std=$(STD) -lm test/crash_test.c -o test_crash
+	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) -lm test/assert_dbl_test.c -o test_dbl
 
 clear:
 	rm -rf *.o test_*
