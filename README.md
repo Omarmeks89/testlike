@@ -39,6 +39,44 @@ make ESTRM=2 MSTRM=2
 ```bash
 gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
 ```
+## ABOUT
+Minimal utility for simple test cases. If you`re working on your simple pet-project this tool may be useful. Can be integrated directly into code (instead of assert) or used in separate test functions. String comparison and support for table tests will be added in future versions.
+
+It consists of only one header file and does not require third-party libraries. Note that the `math` library is used. Take this into account when compiling tests.
+
+### Usage
+
+`ASSERT` will break execution if testcase failed:
+```bash
+ASSERT_EQ_INT32(result, expected_value, test_title, line_number);
+```
+
+You can use macro `LINE()` to set line number.
+
+```bash
+ASSERT_EQ_DBL(result, expected_value, epsilon, test_title, line_number);
+```
+
+`testlike` provide several epsilons or you may use from `float.h`:
+```C
+#define DBL_e_9 1e-9
+#define DBL_e_8 1e-8
+#define DBL_e_7 1e-7
+#define DBL_e_6 1e-6
+#define DBL_e_5 1e-5
+#define DBL_e_4 1e-4
+#define DBL_e_3 1e-3
+#define DBL_e_2 1e-2
+#define DBL_e_1 1e-1
+```
+
+`NE` (not equal) may be useful in some cases like:
+```bash
+ASSERT_NE_PTR_NULL(pointer, test_title, line_number);
+```
+
+`EXPECT` will not break execution and you can see all results. `ASSERT` and `EXPECT`
+use the same arguments in same order.
 
 ### Example
 
@@ -89,42 +127,3 @@ null_ptr_test_2                                               [PTR NOT NULL. ADD
 expect_null_ptr_test_3                                                       [NULLPTR: (nil)]     PASSED.
 not_null_ptr_test_4                                           [PTR NOT NULL. ADDR.: 0xffabef]     PASSED.
 ```
-
-## ABOUT
-Minimal utility for simple test cases. Can be integrated directly into code (instead of assert) or used in separate test functions. String comparison and support for table tests will be added in future versions.
-
-It consists of only one header file and does not require third-party libraries. Note that the `math` library is used. Take this into account when compiling tests.
-
-### Usage
-
-`ASSERT` will break execution if testcase failed:
-```bash
-ASSERT_EQ_INT32(result, expected_value, test_title, line_number);
-```
-
-You can use macro `LINE()` to set line number.
-
-```bash
-ASSERT_EQ_DBL(result, expected_value, epsilon, test_title, line_number);
-```
-
-`testlike` provide several epsilons or you may use from `float.h`:
-```C
-#define DBL_e_9 1e-9
-#define DBL_e_8 1e-8
-#define DBL_e_7 1e-7
-#define DBL_e_6 1e-6
-#define DBL_e_5 1e-5
-#define DBL_e_4 1e-4
-#define DBL_e_3 1e-3
-#define DBL_e_2 1e-2
-#define DBL_e_1 1e-1
-```
-
-`NE` (not equal) may be useful in some cases like:
-```bash
-ASSERT_NE_PTR_NULL(pointer, test_title, line_number);
-```
-
-`EXPECT` will not break execution and you can see all results. `ASSERT` and `EXPECT`
-use the same arguments in same order.
