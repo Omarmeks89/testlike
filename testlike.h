@@ -23,6 +23,10 @@
 #include <errno.h>
 #include <stdarg.h>
 
+/* for string comparison */
+#include <locale.h>
+#include <string.h>
+
 #define PASSED "PASSED"
 #define FAILED "FAILED"
 
@@ -226,5 +230,63 @@ void _printmsg(FILE * stream, const char *fmt, ...) {
         int success = ne_double64(RES, EXP, EPSILON);                                           \
         notify(success, DBL_ISNE_TO, DBL_ISEQ_TO, F_NAME, LINE, CONTINUE, EXP, RES, EPSILON);   \
     }
+
+#define POINT_SYMB '.'
+
+/* max symbols count before '.' symbol */
+#define HEAD_SYMS_LIM                           10
+#define ASCII_HEAD                              0x80
+
+/* return 1 if 'UTF-8' is found or 0 */
+int is_locale_utf8(const char *localestr)
+{
+    int i = 0;
+    const char *loc = "UTF-8";
+
+    for (i = 0; i < HEAD_SYMS_LIM; i++)
+    {
+        /* check that is ASCII symbol */
+        if ((*(localestr + i) ^ ASCII_HEAD) == 0)
+            /* is not an ASCII symbol - continue */
+            continue;
+
+        if (*(localestr + i) == POINT_SYMB)
+        {
+            /* this is a point
+             * move i forward by one and break */
+            i++;
+            break;
+        }
+    }
+
+    /* guard */
+    if (i == HEAD_SYMS_LIM)
+        exit(1);
+
+    /* increment pointer and use lib function */
+    return strcoll(localestr + i, loc);
+}
+
+/* strings comparison */
+int testlike_strcmp_utf8(void)
+{
+    /* setlocale test 1 */
+    char *string = NULL;
+    int res = 0;
+
+    string = setlocale(LC_COLLATE, "");
+    /* ru_RU.UTF-8 */
+    if (string == NULL)
+        exit(errno);
+
+    res = is_locale_utf8(string);
+    if (res != 0)
+    {
+        printf("function doesn`t work\n");
+    }
+
+    printf("equality: %d\n", res);
+    return res;
+}
 
 #endif /* _CTEST_H */
