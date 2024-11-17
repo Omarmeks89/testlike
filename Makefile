@@ -24,4 +24,4 @@ str_test: $(SOURCE)
 	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) test/strtest.c -o string_test
 
 clear:
-	rm -rf *.o test_*
+	rm -rf *.o test_* string_*
