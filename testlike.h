@@ -363,9 +363,17 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         }
         
         /* unsupported symbol */
-        printf("unsupported symbol for UTF-8: %#0xd\n", (int) *(curr + j));
+        printf("unsupported symbol for UTF-8: %#0x\n", (int) *(curr + j));
         return NOTUTF;
     }
+    return 0;
+}
+
+
+/* check that we have valid 2-byte UTF-8 sequence */
+int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b))
+{
     return 0;
 }
 
