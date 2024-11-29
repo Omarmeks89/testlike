@@ -243,11 +243,10 @@ int is_locale_utf8(const char *localestr)
     int i = 0;
     const char *loc = "UTF-8";
 
+    /* check that is ASCII symbol */
     for (i = 0; i < HEAD_SYMS_LIM; i++)
     {
-        /* check that is ASCII symbol */
         if ((*(localestr + i) ^ ASCII_HEAD) == 0)
-            /* is not an ASCII symbol - continue */
             continue;
 
         if (*(localestr + i) == POINT_SYMB)
@@ -261,9 +260,8 @@ int is_locale_utf8(const char *localestr)
 
     /* guard */
     if (i == HEAD_SYMS_LIM)
-        exit(1);
+        return 0;
 
-    /* increment pointer and use lib function */
     return strcoll(localestr + i, loc);
 }
 
@@ -275,7 +273,6 @@ int testlike_strcmp_utf8(void)
     int res = 0;
 
     string = setlocale(LC_COLLATE, "");
-    /* ru_RU.UTF-8 */
     if (string == NULL)
         exit(errno);
 
