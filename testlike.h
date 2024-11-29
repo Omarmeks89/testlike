@@ -258,7 +258,6 @@ int is_locale_utf8(const char *localestr)
         }
     }
 
-    /* guard */
     if (i == HEAD_SYMS_LIM)
         return 0;
 
@@ -268,22 +267,20 @@ int is_locale_utf8(const char *localestr)
 /* strings comparison */
 int testlike_strcmp_utf8(void)
 {
-    /* setlocale test 1 */
     char *string = NULL;
-    int res = 0;
 
     string = setlocale(LC_COLLATE, "");
     if (string == NULL)
         exit(errno);
 
-    res = is_locale_utf8(string);
-    if (res != 0)
-    {
-        printf("function doesn`t work\n");
-    }
+    return is_locale_utf8(string);
+}
 
-    printf("equality: %d\n", res);
-    return res;
+/* function, that compare two strings symbol by symbol
+ * and return index (i > 0), that not match, or will return 0
+ */
+int check_utf8_strings_match(const char *smpl, const char *curr, int *error)
+{
 }
 
 #endif /* _CTEST_H */
