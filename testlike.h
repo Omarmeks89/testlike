@@ -276,11 +276,75 @@ int testlike_strcmp_utf8(void)
     return is_locale_utf8(string);
 }
 
+#define MAX_STRING_LEN 1024                 /* string size limit */
+
+enum match_error {
+    NOERRS = -1,
+    NOSTR  = -2,
+    NOTUTF = -3,
+};
+
+int check_utf8_bom(const char *str);
+
 /* function, that compare two strings symbol by symbol
  * and return index (i > 0), that not match, or will return 0
+ * examples:
+ *  1. '...abc(d[n])ef...' -> huge string mismatch with index;
+ *  2. 'abc(d[n])ef...'    -> huge string mismatch on start;
+ *  3. '...abc(d[n])ef'    -> huge string mismatch at the end;
+ *  4. 'abc(d[4])ef'       -> small string mismatch; 
+ *  5. 'a[1]'              -> one symbol mismatch;
+ *  6. ''                  -> mismatch (as empty string in curr).
  */
-int check_utf8_strings_match(const char *smpl, const char *curr, int *error)
+int check_utf8_strings_match(const char *smpl, const char *curr)
 {
+    int is_utf = 0, i = 0, j = 0, res = 0;
+    wchar_t smp_sym_utf8 = 0, curr_sym_utf8 = 0;
+    unsigned char ctrl = 0;
+
+    if ((smpl == NULL) || (curr == NULL))
+        return NOSTR;
+
+    is_utf = testlike_strcmp_utf8();
+    if (is_utf ^ 0)
+        return NOTUTF;
+
+    for (i = 0, j = 0; ((i < MAX_STRING_LEN) && (j < MAX_STRING_LEN)); i++, j++)
+    {
+        ctrl = *(smpl + i) ^ *(curr + j);
+        if (ctrl)
+            /* mismatch */
+            return i;
+
+        if (*(curr + j) == '\n')
+            return 0;
+
+        if ((*(smpl + i) ^ ASCII_HEAD) == 0)
+            continue;
+
+        if ((*(curr + j) >= 0xC2) && (*(curr + j) <= 0xDF))
+        {
+            /* 2-byte sequence */
+            continue;
+        }
+
+        if ((*(curr + j) >= 0xF0) && (*(curr + j) <= 0xF4))
+        {
+            /* 4 byte sequence */
+            continue;
+        }
+
+        if ((*(curr + j) >= 0xE0) && (*(curr + j) <= 0xEF))
+        {
+            /* 3-bytes sequence */
+            /* and UTF BOM detection */
+            continue;
+        }
+        
+        /* unsupported symbol */
+        return NOTUTF;
+    }
+    return 0;
 }
 
 #endif /* _CTEST_H */
