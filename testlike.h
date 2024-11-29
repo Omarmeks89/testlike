@@ -284,7 +284,18 @@ enum match_error {
     NOTUTF = -3,
 };
 
-int check_utf8_bom(const char *str);
+/* eq function */
+int eq_bytes(const char *s, const char *c)
+{
+    return ((*s ^ *c) != 0) ? (int) 1 : (int) 0;
+}
+
+int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b));
+int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b));
+int check_utf8_4byte_sequence(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b));
 
 /* function, that compare two strings symbol by symbol
  * and return index (i > 0), that not match, or will return 0
@@ -298,22 +309,20 @@ int check_utf8_bom(const char *str);
  */
 int check_utf8_strings_match(const char *smpl, const char *curr)
 {
-    int is_utf = 0, i = 0, j = 0, res = 0;
-    wchar_t smp_sym_utf8 = 0, curr_sym_utf8 = 0;
-    unsigned char ctrl = 0;
+    int i = 0, j = 0, res = 0;
 
     if ((smpl == NULL) || (curr == NULL))
         return NOSTR;
 
-    is_utf = testlike_strcmp_utf8();
-    if (is_utf ^ 0)
+    res = testlike_strcmp_utf8();
+    if (res ^ 0)
         return NOTUTF;
 
     for (i = 0, j = 0; ((i < MAX_STRING_LEN) && (j < MAX_STRING_LEN)); i++, j++)
     {
-        ctrl = *(smpl + i) ^ *(curr + j);
-        if (ctrl)
-            /* mismatch */
+        res = eq_bytes(smpl + i, curr + j);
+        if (res)
+            /* mismatch, return curr pos */
             return i;
 
         if (*(curr + j) == '\n')
@@ -325,12 +334,20 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         if ((*(curr + j) >= 0xC2) && (*(curr + j) <= 0xDF))
         {
             /* 2-byte sequence */
+            res = check_utf8_2byte_sequence(smpl, curr, &i, &eq_bytes);
+            if (res == 1)
+                return i;
+            j = i;
             continue;
         }
 
         if ((*(curr + j) >= 0xF0) && (*(curr + j) <= 0xF4))
         {
             /* 4 byte sequence */
+            res = check_utf8_4byte_sequence(smpl, curr, &i, &eq_bytes);
+            if (res == 1)
+                return i;
+            j = i;
             continue;
         }
 
@@ -338,10 +355,15 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         {
             /* 3-bytes sequence */
             /* and UTF BOM detection */
+            res = check_utf8_3byte_sequence(smpl, curr, &i, &eq_bytes);
+            if (res == 1)
+                return i;
+            j = i;
             continue;
         }
         
         /* unsupported symbol */
+        printf("unsupported symbol for UTF-8: %#0xd\n", (int) *(curr + j));
         return NOTUTF;
     }
     return 0;
