@@ -328,7 +328,8 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         if (*(curr + j) == '\n')
             return 0;
 
-        if ((*(smpl + i) ^ ASCII_HEAD) == 0)
+        if ((*(smpl + i) ^ ASCII_HEAD) != 0)
+            /* ASCII found */
             continue;
 
         if ((*(curr + j) >= 0xC2) && (*(curr + j) <= 0xDF))
