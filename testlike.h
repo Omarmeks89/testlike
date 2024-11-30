@@ -335,36 +335,31 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         {
             /* 2-byte sequence */
             res = check_utf8_2byte_sequence(smpl, curr, &i, &eq_bytes);
-            if (res == 1)
-                return i;
-            j = i;
-            continue;
         }
 
-        if ((*(curr + j) >= 0xF0) && (*(curr + j) <= 0xF4))
+        else if ((*(curr + j) >= 0xF0) && (*(curr + j) <= 0xF4))
         {
             /* 4 byte sequence */
             res = check_utf8_4byte_sequence(smpl, curr, &i, &eq_bytes);
-            if (res == 1)
-                return i;
-            j = i;
-            continue;
         }
 
-        if ((*(curr + j) >= 0xE0) && (*(curr + j) <= 0xEF))
+        else if ((*(curr + j) >= 0xE0) && (*(curr + j) <= 0xEF))
         {
             /* 3-bytes sequence */
             /* and UTF BOM detection */
             res = check_utf8_3byte_sequence(smpl, curr, &i, &eq_bytes);
-            if (res == 1)
-                return i;
-            j = i;
-            continue;
         }
-        
-        /* unsupported symbol */
-        printf("unsupported symbol for UTF-8: %#0x\n", (int) *(curr + j));
-        return NOTUTF;
+
+        else {
+            /* unsupported symbol */
+            printf("unsupported symbol for UTF-8: %#0x\n", (int) *(curr + j));
+            return NOTUTF;
+        }
+
+        if (res == 1)
+            return i;
+
+        j = i;
     }
     return 0;
 }
