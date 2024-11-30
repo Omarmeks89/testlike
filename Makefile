@@ -11,7 +11,8 @@ OUT_STREAMS=-DESTRM=$(ESTRM) -DMSTRM=$(MSTRM)
 
 .PHONY: all clean
 
-all: test test_int test_dbl
+# $@ -> current target name
+all: test test_int test_dbl test_str
 
 test: test_ptr.o
 	$(C) -lm -o test_ptr test_ptr.o
@@ -31,8 +32,11 @@ test_dbl: test_dbl.o
 test_dbl.o: $(SOURCE) test/assert_dbl_test.c
 	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) -c -o $@ test/assert_dbl_test.c
 
-str_test: $(SOURCE)
-	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) test/strtest.c -o string_test
+test_str: test_str.o
+	$(C) -o $@ test_str.o
+
+test_str.o: $(SOURCE) test/strtest.c
+	$(C) $(FLDEBUG) $(QUIET) $(OUT_STREAMS) -std=$(STD) -c -o $@ test/strtest.c
 
 clean:
-	rm -rf *.o test_* string_* && clear
+	rm -rf *.o test_* && clear
