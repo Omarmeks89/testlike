@@ -27,6 +27,10 @@
 #include <locale.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PASSED "PASSED"
 #define FAILED "FAILED"
 
@@ -372,5 +376,9 @@ int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
 {
     return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif                  /* __CPLUSPLUS */
 
 #endif /* _CTEST_H */
