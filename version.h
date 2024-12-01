@@ -11,7 +11,7 @@ extern "C" {
 
 /* define macro */
 #define TOSTR(x) #x
-#define STRING(x) TOSRT(x)
+#define STRING(x) TOSTR(x)
 
 #define LIB_VERSION STRING(LIB_MAJOR_VERSION) "." STRING(LIB_MINOR_VERSION) "." STRING(LIB_PATH_VERSION)
 
