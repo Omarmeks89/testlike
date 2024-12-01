@@ -280,12 +280,14 @@ int testlike_strcmp_utf8(void)
     return is_locale_utf8(string);
 }
 
-#define MAX_STRING_LEN 1024                 /* string size limit */
+#define MAX_STRING_LEN 1024                 /**< string size limit */
 
 enum match_error {
     NOERRS = -1,
     NOSTR  = -2,
     NOTUTF = -3,
+    STROVF = -4,
+    UNSLOC = -5,                            /**< unsupporetd locale. support UTF-8 only */
 };
 
 /* eq function */
@@ -301,7 +303,7 @@ int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
 int check_utf8_4byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 
-/* function, that compare two strings symbol by symbol
+/** \fn check_utf8_strings_match check that two strings are equal symbol by symbol
  * and return index (i > 0), that not match, or will return 0
  * examples:
  *  1. '...abc(d[n])ef...' -> huge string mismatch with index;
@@ -309,7 +311,10 @@ int check_utf8_4byte_sequence(const char *str, const char *cur, int *pos,
  *  3. '...abc(d[n])ef'    -> huge string mismatch at the end;
  *  4. 'abc(d[4])ef'       -> small string mismatch; 
  *  5. 'a[1]'              -> one symbol mismatch;
- *  6. ''                  -> mismatch (as empty string in curr).
+ *  6. ''                  -> mismatch (as empty string in curr). 
+ *  @param smpl string sample from test case
+ *  @param curr actual string
+ *  @return error code (is lower as zero) or 0 (if OK) or mismatch position
  */
 int check_utf8_strings_match(const char *smpl, const char *curr)
 {
@@ -322,15 +327,14 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
     if (res ^ 0)
         return NOTUTF;
 
-    for (i = 0, j = 0; ((i < MAX_STRING_LEN) && (j < MAX_STRING_LEN)); i++, j++)
+    for (i = 0, j = 0; (*(smpl + i) && *(curr + j)); i++, j++)
     {
         res = eq_bytes(smpl + i, curr + j);
         if (res)
-            /* mismatch, return curr pos */
             return i;
 
-        if (*(curr + j) == '\n')
-            return 0;
+        if ((i ^ MAX_STRING_LEN) == 0)
+            return STROVF;
 
         if ((*(smpl + i) ^ ASCII_HEAD) != 0)
             /* ASCII found */
@@ -358,7 +362,7 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
         else {
             /* unsupported symbol */
             printf("unsupported symbol for UTF-8: %#0x\n", (int) *(curr + j));
-            return NOTUTF;
+            return i;
         }
 
         if (res == 1)
@@ -366,11 +370,24 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
 
         j = i;
     }
+
+    res = eq_bytes(smpl + i, curr + j);
+    if (res)
+        return i;
+
+    /* if all bytes match return 0 as OK */
     return 0;
 }
 
 
-/* check that we have valid 2-byte UTF-8 sequence */
+/** \fn check_utf8_2byte_sequence check that symbol sequence is
+ * a valid UTF-8 2 byte sequence
+ * @param str string sample from test case
+ * @param cur actual string
+ * @pos pointer on current byte position
+ * @eq_func pointer on func for byte equality check
+ * @return 0 if OK or mismatch position
+ */
 int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
