@@ -7,7 +7,7 @@ extern "C" {
 
 #define LIB_MAJOR_VERSION       0
 #define LIB_MINOR_VERSION       1
-#define LIB_PATH_VERSION        6
+#define LIB_PATH_VERSION        7
 
 /* define macro */
 #define TOSTR(x) #x
