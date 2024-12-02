@@ -280,7 +280,14 @@ int testlike_strcmp_utf8(void)
     return is_locale_utf8(string);
 }
 
-#define MAX_STRING_LEN 1024                 /**< string size limit */
+#define MAX_STRING_LEN          1024       /**< string size limit */
+
+/* define UTF8 tail limits */
+#define UTF8_TAIL_START         0x80
+#define UTF8_TAIL_END           0xBF
+
+#define UTF8_2BYTES_RNG_START   0xC2
+#define UTF8_2BYTES_RNG_END     0xDF
 
 enum match_error {
     NOERRS = -1,
@@ -288,6 +295,8 @@ enum match_error {
     NOTUTF = -3,
     STROVF = -4,
     UNSLOC = -5,                            /**< unsupporetd locale. support UTF-8 only */
+    INVARG = -6,
+    NOTEQS = -7,
 };
 
 /* eq function */
@@ -391,6 +400,40 @@ int check_utf8_strings_match(const char *smpl, const char *curr)
 int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
+    /* save initial pointer position to calculate pos in future */
+    unsigned long st_pos = (unsigned long) str;
+    int res = 0;
+
+    if ((str == NULL) || (cur == NULL))
+        return NOSTR;
+
+    /* check pos and pointer on function */
+    if ((pos == NULL) || (eq_func == NULL))
+        return INVARG;
+
+    for (; ((*str != '\n') && (*cur != '\n')); str++, cur++)
+    {
+        /* check that symbol in range of 2 bytes sequence */
+        if (((*cur >= UTF8_TAIL_START) && (*cur <= UTF8_TAIL_END)) ||
+                ((*cur >= UTF8_2BYTES_RNG_START) && (*cur <= UTF8_2BYTES_RNG_END)))
+        {
+            res = eq_bytes(str, cur);
+            if (res == 0)
+                continue;
+        }
+        res = 1;
+        break;
+    }
+
+    if ((res == 1) || (eq_bytes(str, cur) == 1))
+    {
+        st_pos -= (unsigned long) str;
+        /* we dont care about tolerance loss because we want
+         * to get only a distance, that will not overflow int */
+        *pos += (int) st_pos;
+        return NOTEQS;
+    }
+
     return 0;
 }
 
