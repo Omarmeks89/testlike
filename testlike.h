@@ -301,6 +301,9 @@ int testlike_strcmp_utf8(void)
 #define UTF16_SURR_START        0xD800
 #define UTF16_SURR_END          0xDFFF
 
+// byte mask
+#define BYTE_MASK               0x000000FF
+
 enum match_error {
     NOERRS = -1,
     NOSTR  = -2,
@@ -317,7 +320,7 @@ int eq_bytes(const char *s, const char *c)
     return ((*s ^ *c) != 0) ? (int) 1 : (int) 0;
 }
 
-static int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
@@ -344,7 +347,7 @@ int utf8_streq(const char *smpl, const char *curr)
         if ((curr[j] >= UTF8_2BYTES_RNG_START) && (curr[j] <= UTF8_2BYTES_RNG_END))
         {
             /* 2-byte sequence and UTF-16 surrogate detection */
-            pos = check_utf8_2byte_sequence(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
         }
 
         else if ((curr[j] >= UTF8_3BYTES_SEQ_START) && (curr[j] <= UTF8_3BYTES_SEQ_END))
@@ -377,20 +380,11 @@ int utf8_streq(const char *smpl, const char *curr)
     return res;
 }
 
-
-/** \fn check_utf8_2byte_sequence check that symbol sequence is
- * a valid UTF-8 2 byte sequence
- * @param str string sample from test case
- * @param cur actual string
- * @pos pointer on current byte position
- * @eq_func pointer on func for byte equality check
- * @return 0 if OK or mismatch position
- */
-static int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
     wchar_t symb = 0;
-    int i = 0, res = 0;
+    int i = 0, res = 0, valid = 0;
 
     if ((str == NULL) || (cur == NULL))
         return NOSTR;
@@ -398,31 +392,34 @@ static int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
     if ((pos == NULL) || (eq_func == NULL))
         return INVARG;
 
-    for (i = 0; i < 2; i++)
+    if ((str[0] >= UTF8_2BYTES_RNG_START) || (str[0] <= UTF8_2BYTES_RNG_END))
     {
-        if ((str[i] >= UTF8_2BYTES_RNG_START) || (str[i] <= UTF8_2BYTES_RNG_END))
-        {
-            symb |= (wchar_t) str[i] << 8;
-        }
-
-        else if ((str[i] >= UTF8_TAIL_START) || (str[i] <= UTF8_TAIL_END))
-        {
-            symb |= (wchar_t) str[i];
-        }
-
-        else {
-            return NOTUTF;
-        }
-
-        res = eq_func(str + i, cur + i);
-        if (res == 0)
-            return 0;
-
-        *pos++;
+        symb |= ((wchar_t) str[0] & BYTE_MASK) << 8;
+        valid |= 1;
     }
 
+    if ((str[1] >= UTF8_TAIL_START) || (str[1] <= UTF8_TAIL_END))
+    {
+        symb |= ((wchar_t) str[1] & BYTE_MASK);
+        valid &= 1;
+    }
+
+    if (valid == 0) {
+        printf("symbol family not detected\n");
+        return NOTUTF;
+    }
+
+    for (i = 0; i < 2; i++)
+    {
+        res = eq_func(str + i, cur + i);
+        if (res != 0)
+            return 0;
+
+        *pos += 1;
+    }  
+
     // check UTF-16 surrogate
-    if ((symb >= (wchar_t) UTF16_SURR_START) || (symb <= (wchar_t) UTF16_SURR_END))
+    if ((symb >= (wchar_t) UTF16_SURR_START) && (symb <= (wchar_t) UTF16_SURR_END))
     {
         return NOTUTF;
     }
