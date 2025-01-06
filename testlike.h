@@ -304,6 +304,9 @@ int testlike_strcmp_utf8(void)
 // byte mask
 #define BYTE_MASK               0x000000FF
 
+// UTF-8 BOM
+#define UTF8_BOM                0xEFBBBF
+
 enum match_error {
     NOERRS = -1,
     NOSTR  = -2,
