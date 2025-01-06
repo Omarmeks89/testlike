@@ -413,7 +413,7 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
     {
         res = eq_func(str + i, cur + i);
         if (res != 0)
-            return 0;
+            return NOTEQS;
 
         *pos += 1;
     }  
