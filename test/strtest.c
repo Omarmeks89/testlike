@@ -16,6 +16,16 @@ void test_2byte_utf8_seq()
     ASSERT_EQ_INT32(i, 2, "check_byte_ptr", LINE());
 }
 
+void test_2byte_utf8_seq_2()
+{
+    char *example = "а";
+    char *curr = "а";
+    int res = -1, i = 0;
+
+    res = is_utf8_2byte_symbol(example, curr, &i, &eq_bytes);
+    ASSERT_EQ_INT32(res, 1, "test_2utf8_russian", LINE());
+}
+
 void test_detect_utf16_surrogate()
 {
     char example[2] = {0xDF, 0x00};
@@ -57,5 +67,6 @@ int main()
     test_eq_bytes();
     test_detect_utf16_surrogate();
     test_2byte_utf8_ne();
+    test_2byte_utf8_seq_2();
     return 0;
 }

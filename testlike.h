@@ -292,6 +292,10 @@ int testlike_strcmp_utf8(void)
 
 #define UTF8_3BYTES_SEQ_START   0xE0
 #define UTF8_3BYTES_SEQ_END     0xEF
+#define UTF8_3BYTES_MBYTE_MIN   0xA0
+#define UTF8_3BYTES_MBYTE_MAX   0x9F
+
+// 4-bytes
 #define UTF8_4BYTES_SEQ_START   0xF0
 #define UTF8_4BYTES_SEQ_END     0xF4
 
@@ -325,9 +329,9 @@ int eq_bytes(const char *s, const char *c)
 
 int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
-int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
+int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
-int check_utf8_4byte_sequence(const char *str, const char *cur, int *pos,
+int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 
 int utf8_streq(const char *smpl, const char *curr)
@@ -344,26 +348,21 @@ int utf8_streq(const char *smpl, const char *curr)
             return STROVF;
 
         if (smpl[i] <= ASCII_LIMIT)
-            /* ASCII found */
             continue;
 
         if ((curr[j] >= UTF8_2BYTES_RNG_START) && (curr[j] <= UTF8_2BYTES_RNG_END))
         {
-            /* 2-byte sequence and UTF-16 surrogate detection */
             pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
         }
 
         else if ((curr[j] >= UTF8_3BYTES_SEQ_START) && (curr[j] <= UTF8_3BYTES_SEQ_END))
         {
-            /* 3-bytes sequence */
-            /* and UTF BOM detection */
-            pos = check_utf8_3byte_sequence(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_3byte_symbol(smpl, curr, &i, &eq_bytes);
         }
 
         else if ((curr[j] >= UTF8_4BYTES_SEQ_START) && (curr[j] <= UTF8_4BYTES_SEQ_END))
         {
-            /* 4 byte sequence */
-            pos = check_utf8_4byte_sequence(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_4byte_symbol(smpl, curr, &i, &eq_bytes);
         }
 
         else {
@@ -377,7 +376,7 @@ int utf8_streq(const char *smpl, const char *curr)
             break;
         }
 
-        i++, j = i;
+        j = i;
     }
 
     return res;
@@ -408,7 +407,6 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
     }
 
     if (valid == 0) {
-        printf("symbol family not detected\n");
         return NOTUTF;
     }
 
@@ -425,6 +423,72 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
     if ((symb >= (wchar_t) UTF16_SURR_START) && (symb <= (wchar_t) UTF16_SURR_END))
     {
         return NOTUTF;
+    }
+
+    return 1;
+}
+
+int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b))
+{
+    wchar_t symb = 0;
+    int i = 0, res = 0, shift = 0x10;
+
+    if ((str == NULL) || (cur == NULL))
+        return NOSTR;
+
+    if ((pos == NULL) || (eq_func == NULL))
+        return INVARG;
+
+    if ((str[0] < UTF8_3BYTES_SEQ_START) || (str[0] > UTF8_3BYTES_SEQ_END))
+    {
+        return NOTUTF;
+    }
+
+    symb |= ((wchar_t) str[0] & BYTE_MASK) << shift;
+
+    // detect valid 3-byte sequence start
+    for (i = 1; i < 3; i++)
+    {
+        shift -= 8;
+        if (shift < 0)
+            return INVARG;
+
+        // for 0xE0A080 -> 0xE0BFBF
+        if (((str[i] >= 0xA0) || (str[i] <= 0xBF)) && (i == 1))
+        {
+            if (str[0] != 0xE0)
+                return NOTUTF;
+        }
+
+        // for 0xED8080 -> 0xED9FBF
+        else if (((str[i] >= 0x80) || (str[i] <= 0x9F)) && (i == 1))
+        {
+            if (str[0] != 0xED)
+                return NOTUTF;
+        }
+
+        // 0xE18080 -> 0xECBFBF or 0xEE8080 -> 0xEFBFBF
+        else if (((str[i] >= 0x80) || (str[i] <= 0xBF)) && (i == 1))
+        {
+            if (!((str[0] >= 0xE1) || (str[0] <= 0xEC)) || !((str[0] >= 0xEE) || (str[0] <= 0xEF)))
+            {
+                return NOTUTF;
+            }
+        }
+
+        // last byte not in range 0x80 -> 0xBF (invalid sequence)
+        else if (!((str[i] >= 0x80) || (str[i] <= 0xBF)) && (i == 2))
+        {
+            return NOTUTF;
+        }
+
+        res = eq_func(str + i, cur + i);
+        if (res == 1)
+            return NOTEQS;
+
+        *pos += 1;
+        symb |= ((wchar_t) str[i] & BYTE_MASK) << shift;
     }
 
     return 1;
