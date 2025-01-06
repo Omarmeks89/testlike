@@ -297,6 +297,10 @@ int testlike_strcmp_utf8(void)
 
 #define ASCII_LIMIT             0x7F       /**< max possible ascii symbol */
 
+// UTF-16 surrogate
+#define UTF16_SURR_START        0xD800
+#define UTF16_SURR_END          0xDFFF
+
 enum match_error {
     NOERRS = -1,
     NOSTR  = -2,
@@ -313,7 +317,7 @@ int eq_bytes(const char *s, const char *c)
     return ((*s ^ *c) != 0) ? (int) 1 : (int) 0;
 }
 
-int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+static int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
@@ -361,7 +365,7 @@ int utf8_streq(const char *smpl, const char *curr)
         }
 
         res++;
-        if (pos == 0)
+        if (pos <= 0)
         {
             /* means symbol mismatch */
             break;
@@ -382,44 +386,48 @@ int utf8_streq(const char *smpl, const char *curr)
  * @eq_func pointer on func for byte equality check
  * @return 0 if OK or mismatch position
  */
-int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
+static int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
-    /* save initial pointer position to calculate pos in future */
-    unsigned long st_pos = (unsigned long) str;
-    int res = 0;
+    wchar_t symb = 0;
+    int i = 0, res = 0;
 
     if ((str == NULL) || (cur == NULL))
         return NOSTR;
 
-    /* check pos and pointer on function */
     if ((pos == NULL) || (eq_func == NULL))
         return INVARG;
 
-    for (; ((*str != '\n') && (*cur != '\n')); str++, cur++)
+    for (i = 0; i < 2; i++)
     {
-        /* check that symbol in range of 2 bytes sequence */
-        if (((*cur >= UTF8_TAIL_START) && (*cur <= UTF8_TAIL_END)) ||
-                ((*cur >= UTF8_2BYTES_RNG_START) && (*cur <= UTF8_2BYTES_RNG_END)))
+        if ((str[i] >= UTF8_2BYTES_RNG_START) || (str[i] <= UTF8_2BYTES_RNG_END))
         {
-            pos = eq_bytes(str, cur);
-            if (pos == 0)
-                continue;
+            symb |= (wchar_t) str[i] << 8;
         }
-        pos = 1;
-        break;
+
+        else if ((str[i] >= UTF8_TAIL_START) || (str[i] <= UTF8_TAIL_END))
+        {
+            symb |= (wchar_t) str[i];
+        }
+
+        else {
+            return NOTUTF;
+        }
+
+        res = eq_func(str + i, cur + i);
+        if (res == 0)
+            return 0;
+
+        *pos++;
     }
 
-    if ((pos == 1) || (eq_bytes(str, cur) == 1))
+    // check UTF-16 surrogate
+    if ((symb >= (wchar_t) UTF16_SURR_START) || (symb <= (wchar_t) UTF16_SURR_END))
     {
-        st_pos -= (unsigned long) str;
-        /* we dont care about tolerance loss because we want
-         * to get only a distance, that will not overflow int */
-        *pos += (int) st_pos;
-        return NOTEQS;
+        return NOTUTF;
     }
 
-    return 0;
+    return 1;
 }
 
 #ifdef __cplusplus
