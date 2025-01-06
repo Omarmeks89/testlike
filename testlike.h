@@ -26,6 +26,7 @@
 /* for string comparison */
 #include <locale.h>
 #include <string.h>
+#include <wchar.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -250,7 +251,7 @@ int is_locale_utf8(const char *localestr)
     /* check that is ASCII symbol */
     for (i = 0; i < HEAD_SYMS_LIM; i++)
     {
-        if ((*(localestr + i) ^ ASCII_HEAD) == 0)
+        if ((localestr[i] ^ ASCII_HEAD) == 0)
             continue;
 
         if (*(localestr + i) == POINT_SYMB)
@@ -289,6 +290,13 @@ int testlike_strcmp_utf8(void)
 #define UTF8_2BYTES_RNG_START   0xC2
 #define UTF8_2BYTES_RNG_END     0xDF
 
+#define UTF8_3BYTES_SEQ_START   0xE0
+#define UTF8_3BYTES_SEQ_END     0xEF
+#define UTF8_4BYTES_SEQ_START   0xF0
+#define UTF8_4BYTES_SEQ_END     0xF4
+
+#define ASCII_LIMIT             0x7F       /**< max possible ascii symbol */
+
 enum match_error {
     NOERRS = -1,
     NOSTR  = -2,
@@ -312,80 +320,57 @@ int check_utf8_3byte_sequence(const char *str, const char *cur, int *pos,
 int check_utf8_4byte_sequence(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 
-/** \fn check_utf8_strings_match check that two strings are equal symbol by symbol
- * and return index (i > 0), that not match, or will return 0
- * examples:
- *  1. '...abc(d[n])ef...' -> huge string mismatch with index;
- *  2. 'abc(d[n])ef...'    -> huge string mismatch on start;
- *  3. '...abc(d[n])ef'    -> huge string mismatch at the end;
- *  4. 'abc(d[4])ef'       -> small string mismatch; 
- *  5. 'a[1]'              -> one symbol mismatch;
- *  6. ''                  -> mismatch (as empty string in curr). 
- *  @param smpl string sample from test case
- *  @param curr actual string
- *  @return error code (is lower as zero) or 0 (if OK) or mismatch position
- */
-int check_utf8_strings_match(const char *smpl, const char *curr)
+int utf8_streq(const char *smpl, const char *curr)
 {
-    int i = 0, j = 0, res = 0;
+    // i - is a byte position pointer
+    int i = 0, j = 0, pos = 0, res = 0;
 
     if ((smpl == NULL) || (curr == NULL))
         return NOSTR;
 
-    res = testlike_strcmp_utf8();
-    if (res ^ 0)
-        return NOTUTF;
-
-    for (i = 0, j = 0; (*(smpl + i) && *(curr + j)); i++, j++)
+    for (; (smpl[i] && curr[j]); )
     {
-        res = eq_bytes(smpl + i, curr + j);
-        if (res)
-            return i;
-
         if ((i ^ MAX_STRING_LEN) == 0)
             return STROVF;
 
-        if ((*(smpl + i) ^ ASCII_HEAD) != 0)
+        if (smpl[i] <= ASCII_LIMIT)
             /* ASCII found */
             continue;
 
-        if ((*(curr + j) >= 0xC2) && (*(curr + j) <= 0xDF))
+        if ((curr[j] >= UTF8_2BYTES_RNG_START) && (curr[j] <= UTF8_2BYTES_RNG_END))
         {
-            /* 2-byte sequence */
-            res = check_utf8_2byte_sequence(smpl, curr, &i, &eq_bytes);
+            /* 2-byte sequence and UTF-16 surrogate detection */
+            pos = check_utf8_2byte_sequence(smpl, curr, &i, &eq_bytes);
         }
 
-        else if ((*(curr + j) >= 0xF0) && (*(curr + j) <= 0xF4))
-        {
-            /* 4 byte sequence */
-            res = check_utf8_4byte_sequence(smpl, curr, &i, &eq_bytes);
-        }
-
-        else if ((*(curr + j) >= 0xE0) && (*(curr + j) <= 0xEF))
+        else if ((curr[j] >= UTF8_3BYTES_SEQ_START) && (curr[j] <= UTF8_3BYTES_SEQ_END))
         {
             /* 3-bytes sequence */
             /* and UTF BOM detection */
-            res = check_utf8_3byte_sequence(smpl, curr, &i, &eq_bytes);
+            pos = check_utf8_3byte_sequence(smpl, curr, &i, &eq_bytes);
+        }
+
+        else if ((curr[j] >= UTF8_4BYTES_SEQ_START) && (curr[j] <= UTF8_4BYTES_SEQ_END))
+        {
+            /* 4 byte sequence */
+            pos = check_utf8_4byte_sequence(smpl, curr, &i, &eq_bytes);
         }
 
         else {
-            /* unsupported symbol */
-            printf("unsupported symbol for UTF-8: %#0x\n", (int) *(curr + j));
-            return i;
+            return NOTUTF;
         }
 
-        if (res == 1)
-            return i;
+        res++;
+        if (pos == 0)
+        {
+            /* means symbol mismatch */
+            break;
+        }
 
-        j = i;
+        i++, j = i;
     }
 
-    res = eq_bytes(smpl + i, curr + j);
-    if (res)
-        return i;
-
-    /* if all bytes match return 0 as OK */
-    return 0;
+    return res;
 }
 
 
@@ -417,15 +402,15 @@ int check_utf8_2byte_sequence(const char *str, const char *cur, int *pos,
         if (((*cur >= UTF8_TAIL_START) && (*cur <= UTF8_TAIL_END)) ||
                 ((*cur >= UTF8_2BYTES_RNG_START) && (*cur <= UTF8_2BYTES_RNG_END)))
         {
-            res = eq_bytes(str, cur);
-            if (res == 0)
+            pos = eq_bytes(str, cur);
+            if (pos == 0)
                 continue;
         }
-        res = 1;
+        pos = 1;
         break;
     }
 
-    if ((res == 1) || (eq_bytes(str, cur) == 1))
+    if ((pos == 1) || (eq_bytes(str, cur) == 1))
     {
         st_pos -= (unsigned long) str;
         /* we dont care about tolerance loss because we want
