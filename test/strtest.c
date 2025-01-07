@@ -131,10 +131,30 @@ void test_utf8_streq_1()
     ASSERT_EQ_INT32(res, 2, "utf8_streq_test_1", LINE());
 }
 
+void test_utf8_streq_2()
+{
+    char *smp = "фfF";
+    char *got = "фiG";
+    int res = 0;
+
+    res = utf8_streq(smp, got);
+    ASSERT_EQ_INT32(res, 2, "utf8_streq_test_2", LINE());
+}
+
+void test_utf8_streq_3()
+{
+    char *smp = "фfF";
+    char *got = "фfG";
+    int res = 0;
+
+    res = utf8_streq(smp, got);
+    ASSERT_EQ_INT32(res, 3, "utf8_streq_test_3", LINE());
+}
+
 
 int main()
 {
-    /* locale_info_test();
+    locale_info_test();
     test_2byte_utf8_seq();
     test_eq_bytes();
     test_detect_utf16_surrogate();
@@ -145,8 +165,10 @@ int main()
     utf8_encoder_noteqs_test();
     utf8_3bytes_symb_test();
     utf8_3bytes_ne_symb_test();
-    utf8_4bytes_symb_test(); */
+    utf8_4bytes_symb_test();
 
     test_utf8_streq_1();
+    test_utf8_streq_2();
+    test_utf8_streq_3();
     return 0;
 }

@@ -343,7 +343,7 @@ int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
 int utf8_streq(const char *smpl, const char *curr)
 {
     // i - is a byte position pointer
-    int i = 0, j = 0, pos = 0, res = 0, str_len = 0;
+    int i = 0, pos = 0, res = 0, str_len = 0;
     unsigned char ctrl = 0;
 
     str_len = (strchr(smpl, 0) - smpl) / sizeof(char);
@@ -352,10 +352,14 @@ int utf8_streq(const char *smpl, const char *curr)
 
     for (; i < str_len; )
     {
-        ctrl = (unsigned char) curr[j] & BYTE_MASK;
-        if ((ctrl <= ASCII_LIMIT) && (ctrl > 0))
+        ctrl = (unsigned char) curr[i] & BYTE_MASK;
+        if (ctrl <= ASCII_LIMIT)
         {
-            res++, i++, j = i;
+            res++;
+            if (eq_bytes(smpl + i, curr + i) == 1)
+                break;
+
+            i++;
             continue;
         }
 
@@ -378,8 +382,6 @@ int utf8_streq(const char *smpl, const char *curr)
             /* means symbol mismatch */
             break;
         }
-
-        j = i;
     }
 
     return res;
