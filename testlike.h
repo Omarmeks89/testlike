@@ -319,7 +319,11 @@ enum match_error {
     UNSLOC = -5,                            /**< unsupporetd locale. support UTF-8 only */
     INVARG = -6,
     NOTEQS = -7,
+    INTLGE = -8,                            /**< means error in internal logic */
+    UTFBOM = -9,                            /**< special case for UTF8 BOM */
 };
+
+/* =================== RFC 3629 (UTF-8) =================================================== */
 
 /* eq function */
 int eq_bytes(const char *s, const char *c)
@@ -333,14 +337,13 @@ int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
 int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b));
+int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
+                        int bytes_cnt, int (* eq_func)(const char *a, const char *b));
 
 int utf8_streq(const char *smpl, const char *curr)
 {
     // i - is a byte position pointer
     int i = 0, j = 0, pos = 0, res = 0;
-
-    if ((smpl == NULL) || (curr == NULL))
-        return NOSTR;
 
     for (; (smpl[i] && curr[j]); )
     {
@@ -351,19 +354,13 @@ int utf8_streq(const char *smpl, const char *curr)
             continue;
 
         if ((curr[j] >= UTF8_2BYTES_RNG_START) && (curr[j] <= UTF8_2BYTES_RNG_END))
-        {
             pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
-        }
 
         else if ((curr[j] >= UTF8_3BYTES_SEQ_START) && (curr[j] <= UTF8_3BYTES_SEQ_END))
-        {
             pos = is_utf8_3byte_symbol(smpl, curr, &i, &eq_bytes);
-        }
 
         else if ((curr[j] >= UTF8_4BYTES_SEQ_START) && (curr[j] <= UTF8_4BYTES_SEQ_END))
-        {
             pos = is_utf8_4byte_symbol(smpl, curr, &i, &eq_bytes);
-        }
 
         else {
             return NOTUTF;
@@ -386,116 +383,122 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
     wchar_t symb = 0;
-    int i = 0, res = 0, valid = 0;
+    int valid = 0;
 
-    if ((str == NULL) || (cur == NULL))
-        return NOSTR;
-
-    if ((pos == NULL) || (eq_func == NULL))
+    if (pos == NULL)
         return INVARG;
 
-    if ((str[0] >= UTF8_2BYTES_RNG_START) || (str[0] <= UTF8_2BYTES_RNG_END))
-    {
-        symb |= ((wchar_t) str[0] & BYTE_MASK) << 8;
-        valid |= 1;
-    }
+    valid = encode_utf8_symbol(str, cur, &symb, 2, eq_func);
+    if (valid != 0)
+        return valid;
 
-    if ((str[1] >= UTF8_TAIL_START) || (str[1] <= UTF8_TAIL_END))
+    *pos += 2;
+    if ((symb >= 0xC280) || (symb <= 0xDFBF))
     {
-        symb |= ((wchar_t) str[1] & BYTE_MASK);
-        valid &= 1;
+        if ((symb >= (wchar_t) UTF16_SURR_START) && (symb <= (wchar_t) UTF16_SURR_END))
+            return NOTUTF;
+        return 1;
     }
+    return 0;
+}
 
-    if (valid == 0) {
-        return NOTUTF;
-    }
+/** \fn set_utf8_wchar set utf8 encoded bytes
+ * into smb
+ * @param smb pointer on wchar_t var
+ * @param bytes_cnt significant bytes count
+ * @return 0 if done success or 1
+ */
+int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
+                        int bytes_cnt, int (* eq_func)(const char *a, const char *b))
+{
+    int shift = 0, i = 0, equal = 0;
 
-    for (i = 0; i < 2; i++)
+    if ((smb == NULL) || (str == NULL) || (cur == NULL) || (eq_func == NULL))
+        return INVARG;
+
+    if ((bytes_cnt <= 0) || (bytes_cnt > 4))
+        return INVARG;
+
+    for (i = 0; i < bytes_cnt; i++)
     {
-        res = eq_func(str + i, cur + i);
-        if (res != 0)
+        equal = eq_func(str + i, cur + i);
+        if (equal != 0)
             return NOTEQS;
 
-        *pos += 1;
-    }  
+        shift = 8 * (bytes_cnt - (1 + i));
+        if (shift < 0)
+            /* means logical error here */
+            return INTLGE;
 
-    // check UTF-16 surrogate
-    if ((symb >= (wchar_t) UTF16_SURR_START) && (symb <= (wchar_t) UTF16_SURR_END))
-    {
-        return NOTUTF;
+        *smb |= ((wchar_t) str[i] & BYTE_MASK) << shift; 
     }
 
-    return 1;
+    return 0;
 }
 
 int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
     wchar_t symb = 0;
-    int i = 0, res = 0, shift = 0x10;
+    int encoding_res = 0;
 
-    if ((str == NULL) || (cur == NULL))
-        return NOSTR;
-
-    if ((pos == NULL) || (eq_func == NULL))
+    if (pos == NULL)
         return INVARG;
 
-    if ((str[0] < UTF8_3BYTES_SEQ_START) || (str[0] > UTF8_3BYTES_SEQ_END))
+    encoding_res = encode_utf8_symbol(str, cur, &symb, 3, eq_func);
+    if (encoding_res != 0)
+        return encoding_res;
+
+    *pos += 3;
+    if ((symb >= 0xE0A080) || (symb <= 0xE0BFBF))
+        return 1;
+
+    else if ((symb >= 0xE18080) || (symb <= 0xECBFBF))
+        return 1;
+
+    else if ((symb >= 0xED8080) || (symb <= 0xED9FBF))
+        return 1;
+
+    else if ((symb >= 0xEE8080) || (symb <= 0xEFBFBF))
     {
-        return NOTUTF;
+        /* check UTF8 BOM */
+        if (symb == 0xEFBBBF)
+        {
+            return UTFBOM;
+        }
+        return 1;
     }
+    return 0;
+}
 
-    symb |= ((wchar_t) str[0] & BYTE_MASK) << shift;
+int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
+                            int (*eq_func)(const char *a, const char *b))
+{
+    wchar_t symb = 0;
+    int encoding_res = 0;
 
-    // detect valid 3-byte sequence start
-    for (i = 1; i < 3; i++)
-    {
-        shift -= 8;
-        if (shift < 0)
-            return INVARG;
+    if (pos == NULL)
+        return INVARG;
 
-        // for 0xE0A080 -> 0xE0BFBF
-        if (((str[i] >= 0xA0) || (str[i] <= 0xBF)) && (i == 1))
-        {
-            if (str[0] != 0xE0)
-                return NOTUTF;
-        }
+    encoding_res = encode_utf8_symbol(str, cur, &symb, 4, eq_func);
+    if (encoding_res != 0)
+        return encoding_res;
 
-        // for 0xED8080 -> 0xED9FBF
-        else if (((str[i] >= 0x80) || (str[i] <= 0x9F)) && (i == 1))
-        {
-            if (str[0] != 0xED)
-                return NOTUTF;
-        }
+    *pos += 4;
+    if ((symb >= (wchar_t) 0xF0908080) || (symb <= (wchar_t) 0xF0BFBFBF))
+        return 1;
 
-        // 0xE18080 -> 0xECBFBF or 0xEE8080 -> 0xEFBFBF
-        else if (((str[i] >= 0x80) || (str[i] <= 0xBF)) && (i == 1))
-        {
-            if (!((str[0] >= 0xE1) || (str[0] <= 0xEC)) || !((str[0] >= 0xEE) || (str[0] <= 0xEF)))
-            {
-                return NOTUTF;
-            }
-        }
+    else if ((symb >= (wchar_t) 0xF1808080) || (symb <= (wchar_t) 0xF3BFBFBF))
+        return 1;
 
-        // last byte not in range 0x80 -> 0xBF (invalid sequence)
-        else if (!((str[i] >= 0x80) || (str[i] <= 0xBF)) && (i == 2))
-        {
-            return NOTUTF;
-        }
+    else if ((symb >= (wchar_t) 0xF4808080) || (symb <= (wchar_t) 0xF48FBFBF))
+        return 1;
 
-        res = eq_func(str + i, cur + i);
-        if (res == 1)
-            return NOTEQS;
-
-        *pos += 1;
-        symb |= ((wchar_t) str[i] & BYTE_MASK) << shift;
-    }
-
-    return 1;
+    return 0;
 }
 
 #ifdef __cplusplus
 }
 #endif                  /* __CPLUSPLUS */
 
-#endif /* _CTEST_H */
+#endif                  /* _CTEST_H */

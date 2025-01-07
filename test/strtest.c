@@ -60,6 +60,36 @@ void test_2byte_utf8_ne()
     ASSERT_EQ_INT32(res, NOTEQS, "test_2utf8_bs_not_equal", LINE());
 }
 
+/** test check that we can encode
+ * valid UTF* symbol from bytes
+ */
+void utf8_encoder_test()
+{
+    char str[3] = {0xE0, 0xA8, 0x80};
+    char curr[3] = {0xE0, 0xA8, 0x80};
+    int res = 0;
+    wchar_t symb = 0;
+
+    res = encode_utf8_symbol(str, curr, &symb, 3, &eq_bytes);
+    ASSERT_EQ_INT32(res, 0, "encode_3byte_seq", LINE());
+
+    if (symb != 0xE0A880)
+        res = 1;
+
+    ASSERT_EQ_INT32(res, 0, "check_encoded_3byte_seq", LINE());
+}
+
+void utf8_encoder_noteqs_test()
+{
+    char str[3] = {0xE0, 0xA8, 0x80};
+    char curr[3] = {0xE0, 0xA0, 0x80};
+    int res = 0;
+    wchar_t symb = 0;
+
+    res = encode_utf8_symbol(str, curr, &symb, 3, &eq_bytes);
+    ASSERT_EQ_INT32(res, NOTEQS, "3byte_seq_ne", LINE());
+}
+
 int main()
 {
     locale_info_test();
@@ -68,5 +98,8 @@ int main()
     test_detect_utf16_surrogate();
     test_2byte_utf8_ne();
     test_2byte_utf8_seq_2();
+    
+    utf8_encoder_test();
+    utf8_encoder_noteqs_test();
     return 0;
 }
