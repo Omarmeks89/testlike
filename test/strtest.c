@@ -90,6 +90,38 @@ void utf8_encoder_noteqs_test()
     ASSERT_EQ_INT32(res, NOTEQS, "3byte_seq_ne", LINE());
 }
 
+void utf8_3bytes_symb_test()
+{
+    char str[3] = {0xE0, 0xA8, 0x80};
+    char curr[3] = {0xE0, 0xA8, 0x80};
+    int res = 0, pos = 0;
+
+    res = is_utf8_3byte_symbol(str, curr, &pos, &eq_bytes);
+    ASSERT_EQ_INT32(res, 1, "is_3byte_seq", LINE());
+    ASSERT_EQ_INT32(pos, 3, "next_pos_after_3byte", LINE());
+}
+
+void utf8_3bytes_ne_symb_test()
+{
+    char str[3] = {0xE0, 0xA8, '\0'};
+    char curr[3] = {0xE0, 0xA8, 0x80};
+    int res = 0, pos = 0;
+
+    res = is_utf8_3byte_symbol(str, curr, &pos, &eq_bytes);
+    ASSERT_EQ_INT32(res, NOTEQS, "3byte_not_equal", LINE());
+}
+
+void utf8_4bytes_symb_test()
+{
+    char str[4] = {0xF0, 0xBF, 0xBF, 0xBF};
+    char curr[4] = {0xF0, 0xBF, 0xBF, 0xBF};
+    int res = 0, pos = 0;
+
+    res = is_utf8_3byte_symbol(str, curr, &pos, &eq_bytes);
+    ASSERT_EQ_INT32(res, 1, "4byte_equal", LINE());
+}
+
+
 int main()
 {
     locale_info_test();
@@ -101,5 +133,8 @@ int main()
     
     utf8_encoder_test();
     utf8_encoder_noteqs_test();
+    utf8_3bytes_symb_test();
+    utf8_3bytes_ne_symb_test();
+    utf8_4bytes_symb_test();
     return 0;
 }
