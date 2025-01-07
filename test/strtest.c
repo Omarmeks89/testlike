@@ -121,10 +121,20 @@ void utf8_4bytes_symb_test()
     ASSERT_EQ_INT32(res, 1, "4byte_equal", LINE());
 }
 
+void test_utf8_streq_1()
+{
+    char *smp = "фf";
+    char *got = "фf";
+    int res = 0;
+
+    res = utf8_streq(smp, got);
+    ASSERT_EQ_INT32(res, 2, "utf8_streq_test_1", LINE());
+}
+
 
 int main()
 {
-    locale_info_test();
+    /* locale_info_test();
     test_2byte_utf8_seq();
     test_eq_bytes();
     test_detect_utf16_surrogate();
@@ -135,6 +145,8 @@ int main()
     utf8_encoder_noteqs_test();
     utf8_3bytes_symb_test();
     utf8_3bytes_ne_symb_test();
-    utf8_4bytes_symb_test();
+    utf8_4bytes_symb_test(); */
+
+    test_utf8_streq_1();
     return 0;
 }

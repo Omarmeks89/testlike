@@ -343,23 +343,29 @@ int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
 int utf8_streq(const char *smpl, const char *curr)
 {
     // i - is a byte position pointer
-    int i = 0, j = 0, pos = 0, res = 0;
+    int i = 0, j = 0, pos = 0, res = 0, str_len = 0;
+    unsigned char ctrl = 0;
 
-    for (; (smpl[i] && curr[j]); )
+    str_len = (strchr(smpl, 0) - smpl) / sizeof(char);
+    if (str_len < 0)
+        return INVARG;
+
+    for (; i < str_len; )
     {
-        if ((i ^ MAX_STRING_LEN) == 0)
-            return STROVF;
-
-        if (smpl[i] <= ASCII_LIMIT)
+        ctrl = (unsigned char) curr[j] & BYTE_MASK;
+        if ((ctrl <= ASCII_LIMIT) && (ctrl > 0))
+        {
+            res++, i++, j = i;
             continue;
+        }
 
-        if ((curr[j] >= UTF8_2BYTES_RNG_START) && (curr[j] <= UTF8_2BYTES_RNG_END))
+        if ((ctrl >= UTF8_2BYTES_RNG_START) && (ctrl <= UTF8_2BYTES_RNG_END))
             pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
 
-        else if ((curr[j] >= UTF8_3BYTES_SEQ_START) && (curr[j] <= UTF8_3BYTES_SEQ_END))
+        else if ((ctrl >= UTF8_3BYTES_SEQ_START) && (ctrl <= UTF8_3BYTES_SEQ_END))
             pos = is_utf8_3byte_symbol(smpl, curr, &i, &eq_bytes);
 
-        else if ((curr[j] >= UTF8_4BYTES_SEQ_START) && (curr[j] <= UTF8_4BYTES_SEQ_END))
+        else if ((ctrl >= UTF8_4BYTES_SEQ_START) && (ctrl <= UTF8_4BYTES_SEQ_END))
             pos = is_utf8_4byte_symbol(smpl, curr, &i, &eq_bytes);
 
         else {
