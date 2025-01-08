@@ -357,11 +357,11 @@ int utf8_streq(const char *smpl, const char *curr, int *error)
 
     for (; i < str_len; )
     {
+        res++;
         ctrl = (unsigned char) curr[i] & BYTE_MASK;
         if (ctrl <= ASCII_LIMIT)
         {
             /* TODO: move into ASCII handler */
-            res++;
             if (eq_bytes(smpl + i, curr + i) == 1)
             {
                 *error = NOTEQS;
@@ -390,7 +390,6 @@ int utf8_streq(const char *smpl, const char *curr, int *error)
         else if ((ctrl >= UTF8_4BYTES_SEQ_START) && (ctrl <= UTF8_4BYTES_SEQ_END))
             pos = is_utf8_4byte_symbol(smpl + i, curr + i, &i, &eq_bytes);
 
-        res++;
         if (pos <= 0)
         {
             /* means symbol mismatch */
