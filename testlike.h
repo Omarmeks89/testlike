@@ -340,24 +340,33 @@ int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
 int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
                         int bytes_cnt, int (* eq_func)(const char *a, const char *b));
 
-int utf8_streq(const char *smpl, const char *curr)
+int utf8_streq(const char *smpl, const char *curr, int *error)
 {
-    // i - is a byte position pointer
     int i = 0, pos = 0, res = 0, str_len = 0;
     unsigned char ctrl = 0;
 
+    if (error == NULL)
+        return INVARG;
+
     str_len = (strchr(smpl, 0) - smpl) / sizeof(char);
     if (str_len < 0)
-        return INVARG;
+    {
+        *error = INVARG;
+        return res;
+    }
 
     for (; i < str_len; )
     {
         ctrl = (unsigned char) curr[i] & BYTE_MASK;
         if (ctrl <= ASCII_LIMIT)
         {
+            /* TODO: move into ASCII handler */
             res++;
             if (eq_bytes(smpl + i, curr + i) == 1)
+            {
+                *error = NOTEQS;
                 break;
+            }
 
             i++;
             continue;
@@ -367,21 +376,35 @@ int utf8_streq(const char *smpl, const char *curr)
             pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
 
         else if ((ctrl >= UTF8_3BYTES_SEQ_START) && (ctrl <= UTF8_3BYTES_SEQ_END))
+        {
             pos = is_utf8_3byte_symbol(smpl, curr, &i, &eq_bytes);
+            if (pos == UTFBOM)
+            {
+                /* is required to skip UTF-8 BOM, so we
+                 * decrement res, and set pos as 1 (as a valid UTF-8 symbol)
+                 */
+                res--, pos = 1;
+            }
+        }
 
         else if ((ctrl >= UTF8_4BYTES_SEQ_START) && (ctrl <= UTF8_4BYTES_SEQ_END))
             pos = is_utf8_4byte_symbol(smpl, curr, &i, &eq_bytes);
-
-        else {
-            return NOTUTF;
-        }
 
         res++;
         if (pos <= 0)
         {
             /* means symbol mismatch */
+            if (pos < 0)
+                *error = pos;
+            else {
+                /* pos = 0, means no UTF symbol was detected */
+                *error = NOTUTF;
+            }
             break;
         }
+
+        /* cleanup previous value */
+        pos = 0;
     }
 
     return res;

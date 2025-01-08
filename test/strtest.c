@@ -125,9 +125,10 @@ void test_utf8_streq_1()
 {
     char *smp = "фf";
     char *got = "фf";
-    int res = 0;
+    int res = 0, error = 0;
 
-    res = utf8_streq(smp, got);
+    res = utf8_streq(smp, got, &error);
+    ASSERT_EQ_INT32(error, 0, "utf8_streq_no_error", LINE());
     ASSERT_EQ_INT32(res, 2, "utf8_streq_test_1", LINE());
 }
 
@@ -135,9 +136,10 @@ void test_utf8_streq_2()
 {
     char *smp = "фfF";
     char *got = "фiG";
-    int res = 0;
+    int res = 0, error = 0;
 
-    res = utf8_streq(smp, got);
+    res = utf8_streq(smp, got, &error);
+    ASSERT_EQ_INT32(error, NOTEQS, "utf8_streq_not_eq_str", LINE());
     ASSERT_EQ_INT32(res, 2, "utf8_streq_test_2", LINE());
 }
 
@@ -145,9 +147,10 @@ void test_utf8_streq_3()
 {
     char *smp = "фfF";
     char *got = "фfG";
-    int res = 0;
+    int res = 0, error = 0;
 
-    res = utf8_streq(smp, got);
+    res = utf8_streq(smp, got, &error);
+    ASSERT_EQ_INT32(error, NOTEQS, "utf8_streq_not_eq_str_2", LINE());
     ASSERT_EQ_INT32(res, 3, "utf8_streq_test_3", LINE());
 }
 
