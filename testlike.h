@@ -254,7 +254,7 @@ int is_locale_utf8(const char *localestr)
         if ((localestr[i] ^ ASCII_HEAD) == 0)
             continue;
 
-        if (*(localestr + i) == POINT_SYMB)
+        if (localestr[i] == POINT_SYMB)
         {
             /* this is a point
              * move i forward by one and break */
@@ -281,12 +281,7 @@ int testlike_strcmp_utf8(void)
     return is_locale_utf8(string);
 }
 
-#define MAX_STRING_LEN          1024       /**< string size limit */
-
 /* define UTF8 tail limits */
-#define UTF8_TAIL_START         0x80
-#define UTF8_TAIL_END           0xBF
-
 #define UTF8_2BYTES_RNG_START   0xC2
 #define UTF8_2BYTES_RNG_END     0xDF
 
@@ -492,7 +487,7 @@ int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
     else if ((symb >= 0xEE8080) && (symb <= 0xEFBFBF))
     {
         /* check UTF8 BOM */
-        if (symb == 0xEFBBBF)
+        if (symb == UTF8_BOM)
         {
             return UTFBOM;
         }
