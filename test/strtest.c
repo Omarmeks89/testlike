@@ -117,7 +117,7 @@ void utf8_4bytes_symb_test()
     char curr[4] = {0xF0, 0xBF, 0xBF, 0xBF};
     int res = 0, pos = 0;
 
-    res = is_utf8_3byte_symbol(str, curr, &pos, &eq_bytes);
+    res = is_utf8_4byte_symbol(str, curr, &pos, &eq_bytes);
     ASSERT_EQ_INT32(res, 1, "4byte_equal", LINE());
 }
 
@@ -154,6 +154,17 @@ void test_utf8_streq_3()
     ASSERT_EQ_INT32(res, 3, "utf8_streq_test_3", LINE());
 }
 
+void test_utf8_streq_skip_bom()
+{
+    char smp[7] = {0xEF, 0xBB, 0xBF, 0xE0, 0xA0, 0x80, '\0'};
+    char curr[7] = {0xEF, 0xBB, 0xBF, 0xE0, 0xA0, 0x80, '\0'};
+    int res = 0, error = 0;
+
+    res = utf8_streq(smp, curr, &error);
+    ASSERT_EQ_INT32(error, 0, "utf8_streq_no_err_bom", LINE());
+    ASSERT_EQ_INT32(res, 1, "utf8_streq_skip_bom", LINE());
+}
+
 
 int main()
 {
@@ -173,5 +184,6 @@ int main()
     test_utf8_streq_1();
     test_utf8_streq_2();
     test_utf8_streq_3();
+    test_utf8_streq_skip_bom();
     return 0;
 }

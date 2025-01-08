@@ -373,11 +373,11 @@ int utf8_streq(const char *smpl, const char *curr, int *error)
         }
 
         if ((ctrl >= UTF8_2BYTES_RNG_START) && (ctrl <= UTF8_2BYTES_RNG_END))
-            pos = is_utf8_2byte_symbol(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_2byte_symbol(smpl + i, curr + i, &i, &eq_bytes);
 
         else if ((ctrl >= UTF8_3BYTES_SEQ_START) && (ctrl <= UTF8_3BYTES_SEQ_END))
         {
-            pos = is_utf8_3byte_symbol(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_3byte_symbol(smpl + i, curr + i, &i, &eq_bytes);
             if (pos == UTFBOM)
             {
                 /* is required to skip UTF-8 BOM, so we
@@ -388,7 +388,7 @@ int utf8_streq(const char *smpl, const char *curr, int *error)
         }
 
         else if ((ctrl >= UTF8_4BYTES_SEQ_START) && (ctrl <= UTF8_4BYTES_SEQ_END))
-            pos = is_utf8_4byte_symbol(smpl, curr, &i, &eq_bytes);
+            pos = is_utf8_4byte_symbol(smpl + i, curr + i, &i, &eq_bytes);
 
         res++;
         if (pos <= 0)
@@ -424,7 +424,7 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
         return valid;
 
     *pos += 2;
-    if ((symb >= 0xC280) || (symb <= 0xDFBF))
+    if ((symb >= 0xC280) && (symb <= 0xDFBF))
     {
         if ((symb >= (wchar_t) UTF16_SURR_START) && (symb <= (wchar_t) UTF16_SURR_END))
             return NOTUTF;
@@ -481,16 +481,16 @@ int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
         return encoding_res;
 
     *pos += 3;
-    if ((symb >= 0xE0A080) || (symb <= 0xE0BFBF))
+    if ((symb >= 0xE0A080) && (symb <= 0xE0BFBF))
         return 1;
 
-    else if ((symb >= 0xE18080) || (symb <= 0xECBFBF))
+    else if ((symb >= 0xE18080) && (symb <= 0xECBFBF))
         return 1;
 
-    else if ((symb >= 0xED8080) || (symb <= 0xED9FBF))
+    else if ((symb >= 0xED8080) && (symb <= 0xED9FBF))
         return 1;
 
-    else if ((symb >= 0xEE8080) || (symb <= 0xEFBFBF))
+    else if ((symb >= 0xEE8080) && (symb <= 0xEFBFBF))
     {
         /* check UTF8 BOM */
         if (symb == 0xEFBBBF)
@@ -516,13 +516,13 @@ int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
         return encoding_res;
 
     *pos += 4;
-    if ((symb >= (wchar_t) 0xF0908080) || (symb <= (wchar_t) 0xF0BFBFBF))
+    if ((symb >= (wchar_t) 0xF0908080) && (symb <= (wchar_t) 0xF0BFBFBF))
         return 1;
 
-    else if ((symb >= (wchar_t) 0xF1808080) || (symb <= (wchar_t) 0xF3BFBFBF))
+    else if ((symb >= (wchar_t) 0xF1808080) && (symb <= (wchar_t) 0xF3BFBFBF))
         return 1;
 
-    else if ((symb >= (wchar_t) 0xF4808080) || (symb <= (wchar_t) 0xF48FBFBF))
+    else if ((symb >= (wchar_t) 0xF4808080) && (symb <= (wchar_t) 0xF48FBFBF))
         return 1;
 
     return 0;
