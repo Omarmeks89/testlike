@@ -290,21 +290,23 @@ int testlike_strcmp_utf8(void)
 #define UTF8_3BYTES_MBYTE_MIN   0xA0
 #define UTF8_3BYTES_MBYTE_MAX   0x9F
 
-// 4-bytes
 #define UTF8_4BYTES_SEQ_START   0xF0
 #define UTF8_4BYTES_SEQ_END     0xF4
 
 #define ASCII_LIMIT             0x7F       /**< max possible ascii symbol */
 
-// UTF-16 surrogate
 #define UTF16_SURR_START        0xD800
 #define UTF16_SURR_END          0xDFFF
 
-// byte mask
 #define BYTE_MASK               0x000000FF
 
-// UTF-8 BOM
 #define UTF8_BOM                0xEFBBBF
+
+/* define constants for bytes count in wide char */
+#define UTF8_2BYTES             2
+#define UTF8_3BYTES             3
+#define UTF8_4BYTES             4
+
 
 enum match_error {
     NOERRS = -1,
@@ -413,7 +415,7 @@ int is_utf8_2byte_symbol(const char *str, const char *cur, int *pos,
     if (pos == NULL)
         return INVARG;
 
-    valid = encode_utf8_symbol(str, cur, &symb, 2, eq_func);
+    valid = encode_utf8_symbol(str, cur, &symb, UTF8_2BYTES, eq_func);
     if (valid != 0)
         return valid;
 
@@ -461,6 +463,14 @@ int encode_utf8_symbol(const char *str, const char *cur, wchar_t *smb,
     return 0;
 }
 
+/** \fn is_utf8_3byte_symbol detect 3 bytes long utf-8 symbol
+ * and incrment pos on 3 bytes.
+ * @param str - string sample,
+ * @param cur - current string,
+ * @param pos - length in bytes (for shift ptr position),
+ * @param eq_func - function that compare two bytes on equality
+ * @return result code (x > 0) or error code (x < 0)
+ */
 int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
                             int (*eq_func)(const char *a, const char *b))
 {
@@ -470,7 +480,7 @@ int is_utf8_3byte_symbol(const char *str, const char *cur, int *pos,
     if (pos == NULL)
         return INVARG;
 
-    encoding_res = encode_utf8_symbol(str, cur, &symb, 3, eq_func);
+    encoding_res = encode_utf8_symbol(str, cur, &symb, UTF8_3BYTES, eq_func);
     if (encoding_res != 0)
         return encoding_res;
 
@@ -505,7 +515,7 @@ int is_utf8_4byte_symbol(const char *str, const char *cur, int *pos,
     if (pos == NULL)
         return INVARG;
 
-    encoding_res = encode_utf8_symbol(str, cur, &symb, 4, eq_func);
+    encoding_res = encode_utf8_symbol(str, cur, &symb, UTF8_4BYTES, eq_func);
     if (encoding_res != 0)
         return encoding_res;
 
