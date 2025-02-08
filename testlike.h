@@ -251,16 +251,13 @@ int is_locale_utf8(const char *localestr)
     /* check that is ASCII symbol */
     for (i = 0; i < HEAD_SYMS_LIM; i++)
     {
-        if ((localestr[i] ^ ASCII_HEAD) == 0)
+        if (localestr[i] != POINT_SYMB)
             continue;
-
-        if (localestr[i] == POINT_SYMB)
-        {
-            /* this is a point
-             * move i forward by one and break */
-            i++;
-            break;
-        }
+        
+        /* this is a point
+        * move i forward by one and break */
+        i++;
+        break;
     }
 
     if (i == HEAD_SYMS_LIM)
